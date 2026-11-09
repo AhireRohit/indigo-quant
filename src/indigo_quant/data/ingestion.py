@@ -110,6 +110,12 @@ class DataIngestionEngine:
                 else:
                     logs.append(f"{symbol}: Cross-provider price reconciliation verified successfully.")
 
+                # If Yahoo Finance has newer completed bars (e.g. today after market close), augment df_primary
+                newer_bars = df_yahoo[df_yahoo.index > df_primary.index[-1]]
+                if not newer_bars.empty:
+                    df_primary = pd.concat([df_primary, newer_bars])
+                    logs.append(f"{symbol}: Augmented {len(newer_bars)} newer completed bar(s) from Yahoo Finance.")
+
         # 3. Quality Validation
         is_valid, val_errors = validate_ohlcv_dataframe(
             df_primary, symbol, min_required_bars=self.min_required_bars, check_freshness=False

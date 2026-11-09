@@ -6,8 +6,8 @@
     Registers a background Windows Scheduled Task named "IndigoQuantScheduler" that:
     1. Starts automatically on Windows user login and system startup.
     2. Runs completely in the background without popping up terminal or PowerShell windows.
-    3. Executes the dedicated scheduler runner using the local Python virtual environment (.venv).
-    4. Automatically restarts up to 3 times if the process terminates unexpectedly.
+    3. Directly executes pythonw.exe so Windows Task Scheduler genuinely supervises process lifecycle.
+    4. Automatically restarts up to 3 times if the engine process crashes.
     5. Configures power settings so it continues running on AC power or battery.
 
 .NOTES
@@ -48,22 +48,21 @@ if ($Uninstall) {
     exit 0
 }
 
-# 1. Prepare startup runner launcher script
-$LauncherScript = Join-Path $ProjectRoot "deployment\launch_scheduler_daemon.vbs"
-$VbsContent = @"
-' INDIGO QUANT Silent Background Process Launcher
-Set WshShell = CreateObject("WScript.Shell")
-WshShell.CurrentDirectory = "$ProjectRoot"
-WshShell.Run """$VenvPython"" -m indigo_quant.scheduler.runner", 0, False
-Set WshShell = Nothing
-"@
-Set-Content -Path $LauncherScript -Value $VbsContent -Encoding ASCII
-Write-Host "[OK] Created silent background launcher: $LauncherScript" -ForegroundColor Green
+# 1. Clean up legacy VBS launcher if present
+$LegacyVbs = Join-Path $ProjectRoot "deployment\launch_scheduler_daemon.vbs"
+if (Test-Path $LegacyVbs) {
+    Remove-Item $LegacyVbs -Force -ErrorAction SilentlyContinue
+}
 
-# 2. Define Action
+# 2. Define Scheduled Task Action
+# Directly execute pythonw.exe (the windowless Windows GUI Python binary).
+# This provides silent background execution without any popping console windows,
+# while allowing Windows Task Scheduler to directly supervise the process lifecycle,
+# monitor state (reporting 'Running' while active), and automatically trigger
+# crash recovery / restart policies if the process ever terminates unexpectedly.
 $Action = New-ScheduledTaskAction `
-    -Execute "wscript.exe" `
-    -Argument "`"$LauncherScript`"" `
+    -Execute $VenvPython `
+    -Argument "-m indigo_quant.scheduler.runner" `
     -WorkingDirectory $ProjectRoot
 
 # 3. Define Triggers (At User Logon)
@@ -73,7 +72,7 @@ if (-not $env:USERDOMAIN) {
 }
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User $UserAccount
 
-# 4. Configure Robust Settings
+# 4. Configure Robust Settings with Automatic Crash Recovery
 $Settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
@@ -101,7 +100,8 @@ try {
     Write-Host "Task Details:" -ForegroundColor Cyan
     Write-Host "  - Name: $TaskName"
     Write-Host "  - Trigger: At Logon for user $UserAccount"
-    Write-Host "  - Execution: Silent background daemon via $LauncherScript"
+    Write-Host "  - Execution: Direct supervised background process via $VenvPython"
+    Write-Host "  - Supervision: Windows Task Scheduler tracks engine PID directly"
     Write-Host "  - Auto-Restart: 3 attempts every 1 minute on failure"
     Write-Host "  - Working Dir: $ProjectRoot"
     Write-Host ""

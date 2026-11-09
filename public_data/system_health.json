@@ -1,17 +1,17 @@
 {
   "status": "HEALTHY",
-  "last_audit_ist": "2026-11-09 16:22:17 IST",
+  "last_audit_ist": "2026-11-09 16:58:21 IST",
   "latest_completed_market_day": "2026-11-06",
   "scheduler": {
-    "is_active": false,
-    "last_heartbeat": "N/A",
+    "is_active": true,
+    "last_heartbeat": "2026-11-09 16:58:21 IST",
     "next_scheduled_run": "19:15 IST (Mon-Fri)",
     "missed_recovery_enabled": true
   },
   "last_scan": {
-    "timestamp": null,
-    "status": "N/A",
-    "message": "No recent scan"
+    "timestamp": "2026-11-09T11:27:04.088319",
+    "status": "SUCCESS",
+    "message": "Evening scan complete: 128 symbols scanned, 0 BUY signals, 0 orders queued."
   },
   "data_providers": {
     "tejhq": {

@@ -276,7 +276,7 @@ class Repository:
             level=level,
             component=component,
             message=message,
-            details_json=json.dumps(details) if details else None,
+            details_json=json.dumps(details, default=str) if details else None,
         )
         self.db.add(entry)
         self.db.commit()
@@ -288,7 +288,7 @@ class Repository:
             status=status,
             duration_seconds=duration,
             message=message,
-            details_json=json.dumps(details) if details else None,
+            details_json=json.dumps(details, default=str) if details else None,
         )
         self.db.add(rec)
         self.db.commit()

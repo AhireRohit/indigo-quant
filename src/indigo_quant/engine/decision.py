@@ -96,10 +96,29 @@ class DecisionEngine:
 
             if target_date and eval_date != target_date:
                 # If specific target date was requested, find corresponding row
-                matching_rows = df.index[df.index.date == target_date] if hasattr(df.index, "date") else []
-                if len(matching_rows) > 0:
-                    eval_idx = df.index.get_loc(matching_rows[0])
+                matching_indices = [
+                    i for i, dt in enumerate(df.index)
+                    if (dt.date() if hasattr(dt, "date") else dt) == target_date
+                ]
+                if matching_indices:
+                    eval_idx = matching_indices[-1]
                     eval_date = target_date
+                else:
+                    self.repo.log_rejection(
+                        symbol=symbol,
+                        strategy_id="all",
+                        date=target_date,
+                        reason=f"No completed candle available for target date {target_date} (latest is {eval_date}).",
+                        failed_conditions=["target_date_data_missing"],
+                    )
+                    all_rejections.append({
+                        "symbol": symbol,
+                        "strategy_id": "all",
+                        "date": target_date,
+                        "reason": f"No completed candle available for target date {target_date}.",
+                        "failed_conditions": ["target_date_data_missing"],
+                    })
+                    continue
 
             row = df.iloc[eval_idx]
             ref_close = float(row["close"])
