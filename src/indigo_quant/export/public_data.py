@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -59,10 +60,11 @@ def sanitize_dict(obj: Any) -> Any:
 class PublicDataExporter:
     """Exports sanitized JSON snapshots for public dashboard hosting."""
 
-    def __init__(self, db: Optional[Session] = None, output_dir: str = "public_data"):
+    def __init__(self, db: Optional[Session] = None, output_dir: Optional[str] = None):
         self.db = db or SessionLocal()
         self._owns_db = db is None
-        self.output_dir = Path(output_dir)
+        target_dir = output_dir or os.getenv("INDIGO_PUBLIC_DATA_DIR", "public_data")
+        self.output_dir = Path(target_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def close(self):
@@ -378,7 +380,10 @@ class PublicDataExporter:
         }
 
 
-def export_public_snapshots(output_dir: str = "public_data") -> Dict[str, str]:
-    """Helper function to execute export with fresh DB session."""
-    exporter = PublicDataExporter(output_dir=output_dir)
-    return exporter.export_all()
+def export_public_snapshots(output_dir: Optional[str] = None, db: Optional[Session] = None) -> Dict[str, str]:
+    """Helper function to execute export with fresh or provided DB session."""
+    exporter = PublicDataExporter(db=db, output_dir=output_dir)
+    try:
+        return exporter.export_all()
+    finally:
+        exporter.close()

@@ -157,6 +157,13 @@ def generate_static_html(public_data_dir: str = "public_data", output_path: str 
                         <span class="badge bg-primary p-2">Timezone: Asia/Kolkata</span>
                     </div>
                 </div>
+                <hr class="border-secondary my-3">
+                <div class="small text-secondary">
+                    <span class="text-info fw-bold"><i class="bi bi-shield-lock me-1"></i> Data Segregation:</span>
+                    <span class="badge bg-success-subtle text-success border border-success me-1">Live Forward Paper Trading</span> Real quotes, next-day open simulated fill, modeled delivery fees & slippage.
+                    <span class="badge bg-info-subtle text-info border border-info mx-1">Historical Backtests</span> Multi-year historical simulations strictly segregated from paper capital.
+                    <span class="badge bg-warning-subtle text-warning border border-warning mx-1">Test Isolation</span> Unit test suites execute in memory with zero production impact.
+                </div>
             </div>
         </div>
     </div>

@@ -40,7 +40,7 @@ class TelegramNotifier:
         bot_token: Optional[str] = None,
         chat_id: Optional[str] = None,
         enabled: Optional[bool] = None,
-        cache_path: str = "data/sent_alerts.json",
+        cache_path: Optional[str] = None,
     ):
         self.bot_token = (bot_token or os.getenv("TELEGRAM_BOT_TOKEN", "")).strip() or None
         self.chat_id = (chat_id or os.getenv("TELEGRAM_CHAT_ID", "")).strip() or None
@@ -48,8 +48,10 @@ class TelegramNotifier:
         env_enabled = os.getenv("TELEGRAM_ENABLED", "true").lower() in ("true", "1", "yes")
         self.enabled = (enabled if enabled is not None else env_enabled) and bool(self.bot_token and self.chat_id)
 
-        self.cache_path = Path(cache_path)
+        target_cache = cache_path or os.getenv("INDIGO_ALERTS_CACHE_PATH", "data/sent_alerts.json")
+        self.cache_path = Path(target_cache)
         self._sent_keys: Set[str] = self._load_cache()
+        self._allow_live_network: bool = False
 
     @property
     def is_configured(self) -> bool:
@@ -88,6 +90,14 @@ class TelegramNotifier:
         if dedup_key and dedup_key in self._sent_keys:
             logger.debug("Deduplication: Alert already sent for key %s. Skipping.", dedup_key)
             return True, f"Skipped duplicate alert ({dedup_key})"
+
+        # Fail-safe test isolation check: block external HTTP requests during test runs
+        if os.getenv("INDIGO_TEST_MODE") == "1" and not getattr(self, "_allow_live_network", False):
+            if dedup_key:
+                self._sent_keys.add(dedup_key)
+                self._save_cache()
+            logger.debug("Test mode active: simulated Telegram dispatch for key=%s", dedup_key)
+            return True, "Simulated dispatch in test isolation mode"
 
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         payload = {

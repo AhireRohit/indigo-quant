@@ -33,28 +33,47 @@ from indigo_quant.export.public_data import export_public_snapshots
 from indigo_quant.export.static_report import generate_static_html
 from indigo_quant.scheduler.jobs import IndigoScheduler
 
-# Setup persistent rotating logger
+# Setup persistent rotating logger configuration
 LOG_DIR = Path("logs")
-LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOG_DIR / "indigo_scheduler.log"
 
 formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-file_handler = logging.handlers.RotatingFileHandler(
-    LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
-)
-file_handler.setFormatter(formatter)
-file_handler.setLevel(logging.INFO)
 
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setFormatter(formatter)
-console_handler.setLevel(logging.INFO)
+def setup_scheduler_logging(log_file: Optional[Path] = None) -> None:
+    """Configures the persistent file and console loggers for the standalone scheduler daemon."""
+    target_log_file = log_file or Path(os.getenv("INDIGO_LOG_FILE", str(LOG_FILE)))
+    target_log_file.parent.mkdir(parents=True, exist_ok=True)
 
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-root_logger.addHandler(file_handler)
-if not any(isinstance(h, logging.StreamHandler) and h.stream == sys.stdout for h in root_logger.handlers):
-    root_logger.addHandler(console_handler)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    # Avoid duplicate file handlers pointing to the same file
+    has_file = False
+    for h in root_logger.handlers:
+        if isinstance(h, logging.handlers.RotatingFileHandler):
+            try:
+                if Path(h.baseFilename).resolve() == target_log_file.resolve():
+                    has_file = True
+                    break
+            except Exception:
+                pass
+
+    if not has_file:
+        file_handler = logging.handlers.RotatingFileHandler(
+            target_log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
+        )
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(logging.INFO)
+        root_logger.addHandler(file_handler)
+
+    has_console = any(isinstance(h, logging.StreamHandler) and getattr(h, "stream", None) == sys.stdout for h in root_logger.handlers)
+    if not has_console:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(formatter)
+        console_handler.setLevel(logging.INFO)
+        root_logger.addHandler(console_handler)
+
 
 logger = logging.getLogger("indigo_quant.scheduler.runner")
 
@@ -65,9 +84,13 @@ class SchedulerLock:
     Uses exclusive Windows C-runtime locking with PID tracking.
     """
 
-    def __init__(self, lock_path: str = "data/indigo_scheduler.lock", pid_path: str = "data/indigo_scheduler.pid"):
-        self.lock_path = Path(lock_path)
-        self.pid_path = Path(pid_path)
+    def __init__(
+        self,
+        lock_path: Optional[str] = None,
+        pid_path: Optional[str] = None,
+    ):
+        self.lock_path = Path(lock_path or os.getenv("INDIGO_LOCK_PATH", "data/indigo_scheduler.lock"))
+        self.pid_path = Path(pid_path or os.getenv("INDIGO_PID_PATH", "data/indigo_scheduler.pid"))
         self.lock_file: Optional[Any] = None
         self.acquired = False
 
@@ -131,11 +154,11 @@ class HeartbeatWatchdog:
     def __init__(
         self,
         scheduler_engine: IndigoScheduler,
-        heartbeat_path: str = "data/heartbeat.json",
+        heartbeat_path: Optional[str] = None,
         interval_seconds: int = 30,
     ):
         self.scheduler_engine = scheduler_engine
-        self.heartbeat_path = Path(heartbeat_path)
+        self.heartbeat_path = Path(heartbeat_path or os.getenv("INDIGO_HEARTBEAT_PATH", "data/heartbeat.json"))
         self.interval = interval_seconds
         self.start_time = now_ist()
         self._stop_event = threading.Event()
@@ -211,8 +234,14 @@ class HeartbeatWatchdog:
 class SchedulerService:
     """Autonomous trading engine service coordinator."""
 
-    def __init__(self):
-        self.lock = SchedulerLock()
+    def __init__(
+        self,
+        lock_path: Optional[str] = None,
+        pid_path: Optional[str] = None,
+        heartbeat_path: Optional[str] = None,
+    ):
+        self.lock = SchedulerLock(lock_path=lock_path, pid_path=pid_path)
+        self.heartbeat_path = heartbeat_path
         self.scheduler = IndigoScheduler()
         self.watchdog: Optional[HeartbeatWatchdog] = None
         self._shutdown_requested = False
@@ -257,6 +286,7 @@ class SchedulerService:
 
     def run(self) -> None:
         """Main service entrypoint."""
+        setup_scheduler_logging()
         logger.info("Starting INDIGO QUANT Autonomous Scheduler Daemon...")
 
         # 1. Acquire single-instance lock
@@ -278,7 +308,7 @@ class SchedulerService:
             self.scheduler.start()
 
             # 4. Start Heartbeat Watchdog
-            self.watchdog = HeartbeatWatchdog(self.scheduler)
+            self.watchdog = HeartbeatWatchdog(self.scheduler, heartbeat_path=self.heartbeat_path)
             self.watchdog.start()
 
             # 5. Export initial public data snapshots

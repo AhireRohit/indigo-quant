@@ -91,11 +91,11 @@ nav = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 st.sidebar.info(
-    "🛡️ **Public Read-Only Mode**\n\n"
-    "• Virtual Capital: ₹1,00,000 / Strategy\n"
-    "• +10% Gross Target (5–20 Sessions)\n"
-    "• Modeled Indian Delivery Costs\n"
-    "• Real market data via TejHQ & Yahoo"
+    "🛡️ **System Classification**\n\n"
+    "• **Forward Paper Trading**: Live simulated portfolio tracking with realistic delivery costs\n"
+    "• **Historical Backtesting**: Historical simulation (strictly separated from paper records)\n"
+    "• **Deterministic Rules**: Zero black-box AI overrides\n"
+    "• **Zero Real Capital**: Academic and algorithmic research only"
 )
 
 
@@ -104,6 +104,17 @@ st.sidebar.info(
 # ==============================================================================
 if nav == "1. Overview & Performance":
     st.title("System Overview & Live Performance")
+
+    st.markdown("""
+    <div style="background-color: #1e293b; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+        <span style="font-weight: bold; color: #93c5fd;">📊 Data Segregation & Integrity Notice:</span><br>
+        <span style="color: #cbd5e1; font-size: 0.9rem;">
+        • <b>Live Forward Paper Trading</b>: Trades executed at actual market open on next trading day with ₹1,00,000 virtual capital per strategy.<br>
+        • <b>Historical Backtests</b>: Out-of-sample historical bar simulations. Never mixed with forward paper balances.<br>
+        • <b>Test Isolation</b>: Development test suites run exclusively in isolated in-memory sandboxes and cannot contaminate production logs or state.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
     cap = overview.get("capital_metrics", {})
     tot_equity = cap.get("current_total_equity", 500000.0)
@@ -257,7 +268,8 @@ elif nav == "3. Strategy Leaderboard":
 # PAGE 4 — VIRTUAL PORTFOLIOS
 # ==============================================================================
 elif nav == "4. Virtual Portfolios":
-    st.title("💼 Strategy Portfolios & Trade Log")
+    st.title("💼 Forward Paper Portfolios & Execution Logs")
+    st.caption("🟢 **LIVE FORWARD PAPER TRADING**: Real-time simulated execution at actual market open. Strictly ₹0.00 real money.")
 
     if portfolios:
         strategy_keys = list(portfolios.keys())
@@ -266,7 +278,9 @@ elif nav == "4. Virtual Portfolios":
         strat_data = portfolios[selected_strat]
         st.markdown(f"**Available Cash Balance**: ₹{strat_data.get('cash', 0.0):,.2f} | **Total Equity**: ₹{strat_data.get('equity', 0.0):,.2f}")
 
-        tab_open, tab_closed = st.tabs(["Open Positions", "Closed Trades History"])
+        st.info("💡 **Methodology**: Paper positions are opened next morning upon market open with full Indian regulatory charges (STT, stamp duty, exchange turnover fee, SEBI turnover charges, GST) and 0.1% simulated slippage. Target: +10% within ~5–20 trading sessions.")
+
+        tab_open, tab_closed = st.tabs(["Active Forward Paper Positions", "Closed Forward Paper Trades"])
 
         with tab_open:
             open_pos = strat_data.get("open_positions", [])

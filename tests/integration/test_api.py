@@ -1,6 +1,7 @@
 """
 FastAPI Route Integration Tests.
 Validates /health, /market/status, /agents, /signals, /paper/orders.
+Uses the globally isolated test database environment.
 """
 
 import pytest
@@ -10,19 +11,19 @@ from indigo_quant.api.main import app
 from indigo_quant.db.repository import init_db, seed_universe_and_accounts
 from indigo_quant.db.session import SessionLocal
 
-client = TestClient(app)
 
-
-@pytest.fixture(scope="module", autouse=True)
-def setup_api_db():
+@pytest.fixture
+def api_client(global_test_isolation):
+    """Provide a TestClient connected to the isolated test database."""
     init_db()
     db = SessionLocal()
     seed_universe_and_accounts(db)
     db.close()
+    return TestClient(app)
 
 
-def test_api_health():
-    response = client.get("/health")
+def test_api_health(api_client):
+    response = api_client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -30,16 +31,16 @@ def test_api_health():
     assert data["active_strategy_accounts"] == 5
 
 
-def test_api_market_status():
-    response = client.get("/market/status")
+def test_api_market_status(api_client):
+    response = api_client.get("/market/status")
     assert response.status_code == 200
     data = response.json()
     assert "regime" in data
     assert "is_market_open" in data
 
 
-def test_api_agents_list():
-    response = client.get("/agents")
+def test_api_agents_list(api_client):
+    response = api_client.get("/agents")
     assert response.status_code == 200
     agents = response.json()
     assert len(agents) == 5
@@ -48,13 +49,13 @@ def test_api_agents_list():
     assert "consensus" in ids
 
 
-def test_api_signals_list():
-    response = client.get("/signals")
+def test_api_signals_list(api_client):
+    response = api_client.get("/signals")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 
-def test_api_submit_paper_order():
+def test_api_submit_paper_order(api_client):
     payload = {
         "account_id": "trend_momentum",
         "symbol": "INFY",
@@ -68,7 +69,7 @@ def test_api_submit_paper_order():
         "signal_date": "2024-01-01",
         "validity_days": 2,
     }
-    response = client.post("/paper/orders", json=payload)
+    response = api_client.post("/paper/orders", json=payload)
     assert response.status_code == 201
     data = response.json()
     assert "order_id" in data

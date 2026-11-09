@@ -1,9 +1,10 @@
 """
 Unit tests for Telegram Notifier, Public Data Exporter, and Sanitization.
+All tests use temporary directories and mocked clients for strict production isolation.
 """
 
 import json
-import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -50,17 +51,17 @@ def test_sanitization_removes_paths_and_tokens():
 
 def test_telegram_notifier_deduplication():
     """Verify identical alerts are not dispatched twice (idempotency)."""
-    tmp_dir = Path("data/test_tmp_telegram")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = tmp_dir / "sent_alerts.json"
+    with tempfile.TemporaryDirectory() as td:
+        tmp_dir = Path(td)
+        cache_file = tmp_dir / "sent_alerts.json"
 
-    try:
         notifier = TelegramNotifier(
             bot_token="dummy_token_12345",
             chat_id="12345678",
             enabled=True,
             cache_path=str(cache_file),
         )
+        notifier._allow_live_network = True  # Allows mocked requests.post
 
         with patch("requests.post") as mock_post:
             mock_resp = MagicMock()
@@ -88,17 +89,14 @@ def test_telegram_notifier_deduplication():
             res2 = notifier.send_buy_alert(sig)
             assert res2 is True
             assert mock_post.call_count == 1  # No additional network request
-    finally:
-        if tmp_dir.exists():
-            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def test_public_data_export_and_static_html():
-    """Verify all 6 public JSON snapshots and static HTML report are generated cleanly."""
-    out_dir = Path("data/test_tmp_public")
-    out_dir.mkdir(parents=True, exist_ok=True)
+    """Verify all 6 public JSON snapshots and static HTML report are generated cleanly in an isolated directory."""
+    with tempfile.TemporaryDirectory() as td:
+        out_dir = Path(td) / "public_data"
+        out_dir.mkdir(parents=True, exist_ok=True)
 
-    try:
         exporter = PublicDataExporter(output_dir=str(out_dir))
         files = exporter.export_all()
 
@@ -124,6 +122,3 @@ def test_public_data_export_and_static_html():
         content = Path(res_html).read_text(encoding="utf-8")
         assert "<!DOCTYPE html>" in content
         assert "INDIGO QUANT" in content
-    finally:
-        if out_dir.exists():
-            shutil.rmtree(out_dir, ignore_errors=True)

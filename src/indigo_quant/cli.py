@@ -333,6 +333,7 @@ def cmd_telegram_test(args):
     """Send an operational test notification to Telegram."""
     console.print(Panel("[bold yellow]INDIGO QUANT — Telegram Bot Connectivity Test[/bold yellow]"))
     notifier = TelegramNotifier()
+    notifier._allow_live_network = True
 
     table = Table(title="Telegram Configuration Status")
     table.add_column("Property", style="cyan")
