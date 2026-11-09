@@ -2,7 +2,7 @@
   "system_name": "INDIGO QUANT",
   "tagline": "Autonomous Indian Equity Swing-Trading & Research Platform",
   "target_objective": "10% Gross Upside (5\u201320 Sessions)",
-  "last_updated_ist": "2026-11-09 19:21:30 IST",
+  "last_updated_ist": "2026-11-09 21:19:54 IST",
   "latest_market_session": "2026-11-09",
   "tracked_instruments_count": 128,
   "competing_strategies_count": 5,
@@ -11,9 +11,9 @@
     "current_total_equity": 500000.0,
     "combined_return_pct": 0.0,
     "open_positions_total": 0,
-    "closed_trades_total": 1,
-    "target_hits_total": 1,
-    "target_hit_rate_pct": 100.0
+    "closed_trades_total": 0,
+    "target_hits_total": 0,
+    "target_hit_rate_pct": 0.0
   },
   "disclaimer": "Simulated paper trading only. No real broker execution. 10% target is an algorithmic benchmark, not a guarantee."
 }

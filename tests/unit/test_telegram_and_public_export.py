@@ -122,3 +122,60 @@ def test_public_data_export_and_static_html():
         content = Path(res_html).read_text(encoding="utf-8")
         assert "<!DOCTYPE html>" in content
         assert "INDIGO QUANT" in content
+
+
+def test_test_position_filtering_excludes_future_trades_from_forward_stats():
+    """Verify that future-dated test positions are excluded from forward statistics and captured in audit logs."""
+    import datetime
+    from indigo_quant.db.models import PaperPosition
+    from indigo_quant.export.public_data import is_test_position
+
+    today = datetime.date(2026, 11, 9)
+
+    # 1. Future closed date (smoke test fixture)
+    future_pos = PaperPosition(
+        account_id="trend_momentum",
+        symbol="RELIANCE",
+        strategy_id="trend_momentum",
+        quantity=10,
+        entry_date=today,
+        entry_price=1320.0,
+        current_stop=1268.0,
+        target_price=1452.0,
+        status="CLOSED",
+        closed_date=datetime.date(2026, 11, 16),  # Future date
+        close_reason="TARGET_HIT",
+    )
+    assert is_test_position(future_pos, today) is True
+
+    # 2. Legitimate forward closed position (completed today)
+    legit_pos = PaperPosition(
+        account_id="trend_momentum",
+        symbol="TCS",
+        strategy_id="trend_momentum",
+        quantity=5,
+        entry_date=datetime.date(2026, 11, 6),
+        entry_price=3500.0,
+        current_stop=3400.0,
+        target_price=3850.0,
+        status="CLOSED",
+        closed_date=today,
+        close_reason="TARGET_HIT",
+    )
+    assert is_test_position(legit_pos, today) is False
+
+    # 3. Explicit synthetic test close reason
+    test_pos = PaperPosition(
+        account_id="trend_momentum",
+        symbol="INFY",
+        strategy_id="trend_momentum",
+        quantity=10,
+        entry_date=datetime.date(2026, 11, 6),
+        entry_price=1800.0,
+        current_stop=1750.0,
+        target_price=1980.0,
+        status="CLOSED",
+        closed_date=today,
+        close_reason="TEST_SYNTHETIC_EXIT",
+    )
+    assert is_test_position(test_pos, today) is True

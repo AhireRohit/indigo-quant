@@ -9,8 +9,15 @@ Strictly contains ZERO secrets, ZERO private paths, ZERO database dependencies, 
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any, Dict, List
+
+# Streamlit Community Cloud & Linux container fail-safe import resolution
+_REPO_ROOT = Path(__file__).resolve().parent
+_SRC_DIR = _REPO_ROOT / "src"
+if _SRC_DIR.exists() and str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -283,7 +290,16 @@ elif nav == "4. Virtual Portfolios":
 
         st.info("💡 **Methodology**: Paper positions are opened next morning upon market open with full Indian regulatory charges (STT, stamp duty, exchange turnover fee, SEBI turnover charges, GST) and 0.1% simulated slippage. Target: +10% within ~5–20 trading sessions.")
 
-        tab_open, tab_closed = st.tabs(["Active Forward Paper Positions", "Closed Forward Paper Trades"])
+        test_audit_records = strat_data.get("test_audit_records", [])
+
+        if test_audit_records:
+            tab_open, tab_closed, tab_audit = st.tabs([
+                "Active Forward Paper Positions",
+                "Closed Forward Paper Trades",
+                f"Audit & Verification Log ({len(test_audit_records)})",
+            ])
+        else:
+            tab_open, tab_closed = st.tabs(["Active Forward Paper Positions", "Closed Forward Paper Trades"])
 
         with tab_open:
             open_pos = strat_data.get("open_positions", [])
@@ -300,6 +316,12 @@ elif nav == "4. Virtual Portfolios":
                 st.dataframe(df_closed, use_container_width=True, hide_index=True)
             else:
                 st.info("No closed trades recorded yet.")
+
+        if test_audit_records:
+            with tab_audit:
+                st.caption("ℹ️ Pre-deployment smoke-test and integration verification transactions retained for audit trail. Strictly excluded from live forward paper performance statistics.")
+                df_audit = pd.DataFrame(test_audit_records)
+                st.dataframe(df_audit, use_container_width=True, hide_index=True)
     else:
         st.info("No portfolio snapshot data available.")
 

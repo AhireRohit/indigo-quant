@@ -8,6 +8,7 @@ Strictly scrubs local paths, credentials, machine hostnames, and private IPs.
 
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 import os
@@ -33,6 +34,53 @@ logger = logging.getLogger(__name__)
 # Sanitization regexes
 PATH_PATTERN = re.compile(r"([A-Za-z]:\\[^\"'\n\r\t]+|/home/[^\"'\n\r\t]+|/Users/[^\"'\n\r\t]+)")
 SECRET_KEY_PATTERN = re.compile(r"(api[-_]?key|token|secret|password|bearer)[=:\s]+[A-Za-z0-9_\-\.]{8,}", re.IGNORECASE)
+
+
+def _to_date(val: Any) -> Optional[datetime.date]:
+    """Parse date from date, datetime, or ISO string."""
+    if val is None:
+        return None
+    if isinstance(val, datetime.date):
+        return val
+    if isinstance(val, datetime.datetime):
+        return val.date()
+    if isinstance(val, str):
+        try:
+            return datetime.date.fromisoformat(val[:10])
+        except Exception:
+            return None
+    return None
+
+
+def is_test_position(pos: PaperPosition, latest_market_day: Optional[datetime.date] = None) -> bool:
+    """Identify if a position was generated during smoke/unit/integration testing.
+
+    Conditions for test/audit classification:
+    1. Future-dated relative to the latest completed exchange session (e.g. closed_date > latest_market_day).
+    2. Explicit test markers in close_reason, notes, or strategy/account identifier.
+    """
+    if latest_market_day is None:
+        latest_market_day = get_latest_completed_trading_day()
+
+    entry_d = _to_date(pos.entry_date)
+    closed_d = _to_date(pos.closed_date)
+
+    # 1. Any position whose entry date or closed date is strictly in the future relative to latest market session
+    if entry_d and latest_market_day and entry_d > latest_market_day:
+        return True
+    if closed_d and latest_market_day and closed_d > latest_market_day:
+        return True
+
+    # 2. Check for explicit test/smoke/synthetic markers
+    reason_upper = (pos.close_reason or "").upper()
+    if any(marker in reason_upper for marker in ["TEST", "SMOKE", "SYNTHETIC", "MOCK"]):
+        return True
+
+    acc_lower = (pos.account_id or "").lower()
+    if acc_lower.startswith("test_") or "_test" in acc_lower:
+        return True
+
+    return False
 
 
 def sanitize_text(text: str) -> str:
@@ -157,15 +205,19 @@ class PublicDataExporter:
         }
 
     def _build_leaderboard(self, repo: Repository) -> List[Dict[str, Any]]:
-        """Construct strategy leaderboard ranking."""
+        """Construct strategy leaderboard ranking with strictly live forward paper trades."""
         accounts = repo.get_accounts()
         leaderboard = []
+        latest_market_day = get_latest_completed_trading_day()
 
         for acc in accounts:
             stmt = select(PaperPosition).where(PaperPosition.account_id == acc.id)
             positions = list(self.db.execute(stmt).scalars().all())
-            closed_positions = [p for p in positions if p.status == "CLOSED"]
-            open_positions = [p for p in positions if p.status == "OPEN"]
+
+            # Filter out smoke-test and integration-test transactions from forward metrics
+            live_positions = [p for p in positions if not is_test_position(p, latest_market_day)]
+            closed_positions = [p for p in live_positions if p.status == "CLOSED"]
+            open_positions = [p for p in live_positions if p.status == "OPEN"]
 
             total_trades = len(closed_positions)
             winning_trades = [p for p in closed_positions if (p.realized_pnl_net or 0) > 0]
@@ -263,15 +315,17 @@ class PublicDataExporter:
         }
 
     def _build_portfolios(self, repo: Repository) -> Dict[str, Any]:
-        """Construct positions, open holdings, and closed trades snapshot."""
+        """Construct positions, open holdings, closed trades, and test audit records snapshot."""
         accounts = repo.get_accounts()
         result = {}
+        latest_market_day = get_latest_completed_trading_day()
 
         for acc in accounts:
             stmt = select(PaperPosition).where(PaperPosition.account_id == acc.id)
             positions = list(self.db.execute(stmt).scalars().all())
             open_pos = []
             closed_pos = []
+            test_audit_records = []
 
             for p in positions:
                 item = {
@@ -293,7 +347,11 @@ class PublicDataExporter:
                     "total_fees_paid": round(p.total_fees_paid, 2) if p.total_fees_paid else 0.0,
                     "target_achieved": p.target_achieved,
                 }
-                if p.status == "OPEN":
+                if is_test_position(p, latest_market_day):
+                    item["audit_classification"] = "TEST_OR_FUTURE_SETTLEMENT"
+                    item["audit_note"] = "Excluded from forward performance statistics (future settlement / smoke test)."
+                    test_audit_records.append(item)
+                elif p.status == "OPEN":
                     open_pos.append(item)
                 else:
                     closed_pos.append(item)
@@ -305,6 +363,7 @@ class PublicDataExporter:
                 "equity": round(acc.current_equity, 2),
                 "open_positions": open_pos,
                 "closed_positions": closed_pos,
+                "test_audit_records": test_audit_records,
             }
 
         return result

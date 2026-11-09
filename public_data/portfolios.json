@@ -5,7 +5,8 @@
     "cash": 101232.13,
     "equity": 100000.0,
     "open_positions": [],
-    "closed_positions": [
+    "closed_positions": [],
+    "test_audit_records": [
       {
         "id": 1,
         "symbol": "RELIANCE",
@@ -23,7 +24,9 @@
         "realized_pnl_net": 1232.13,
         "realized_pnl_gross": 1306.8,
         "total_fees_paid": 74.67,
-        "target_achieved": true
+        "target_achieved": true,
+        "audit_classification": "TEST_OR_FUTURE_SETTLEMENT",
+        "audit_note": "Excluded from forward performance statistics (future settlement / smoke test)."
       }
     ]
   },
@@ -33,7 +36,8 @@
     "cash": 100000.0,
     "equity": 100000.0,
     "open_positions": [],
-    "closed_positions": []
+    "closed_positions": [],
+    "test_audit_records": []
   },
   "bullish_pullback": {
     "account_id": "bullish_pullback",
@@ -41,7 +45,8 @@
     "cash": 100000.0,
     "equity": 100000.0,
     "open_positions": [],
-    "closed_positions": []
+    "closed_positions": [],
+    "test_audit_records": []
   },
   "bollinger_squeeze": {
     "account_id": "bollinger_squeeze",
@@ -49,7 +54,8 @@
     "cash": 100000.0,
     "equity": 100000.0,
     "open_positions": [],
-    "closed_positions": []
+    "closed_positions": [],
+    "test_audit_records": []
   },
   "consensus": {
     "account_id": "consensus",
@@ -57,6 +63,7 @@
     "cash": 100000.0,
     "equity": 100000.0,
     "open_positions": [],
-    "closed_positions": []
+    "closed_positions": [],
+    "test_audit_records": []
   }
 }

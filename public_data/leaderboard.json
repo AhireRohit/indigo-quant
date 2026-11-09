@@ -8,11 +8,11 @@
     "current_equity": 100000.0,
     "total_return_pct": 0.0,
     "open_positions_count": 0,
-    "total_trades": 1,
-    "target_hits_count": 1,
-    "target_hit_rate": 100.0,
+    "total_trades": 0,
+    "target_hits_count": 0,
+    "target_hit_rate": 0.0,
     "stop_hits_count": 0,
-    "win_rate": 100.0,
+    "win_rate": 0.0,
     "rank": 1
   },
   {
