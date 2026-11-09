@@ -2,6 +2,126 @@
   "signals": [],
   "rejected_candidates": [
     {
+      "symbol": "RELIANCE",
+      "strategy_id": "consensus",
+      "date": "2026-11-06",
+      "reason": "Insufficient strategy agreement: 0/2",
+      "failed_conditions": [
+        "Only 0 independent strategies agreed (need 2)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "bollinger_squeeze",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 99.17); volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.09); trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09}); breakout_above_20_high: Close > Previous 20-session Highest High (observed 1320.0)",
+      "failed_conditions": [
+        "volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 99.17)",
+        "volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.09)",
+        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09})",
+        "breakout_above_20_high: Close > Previous 20-session Highest High (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "bullish_pullback",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 1240.52, 'ema200': 1320.09}); prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 1313.4, 'prev_ema20': 1230.4}); genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 1320.0, 'curr_ema20': 1238.94}); prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 67.34); curr_rsi_in_recovery_zone: Current RSI14 in [50.0, 65.0] (observed 68.19); entry_near_ema20_cross: Close <= EMA20 * 1.04 (observed 1320.0)",
+      "failed_conditions": [
+        "macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 1240.52, 'ema200': 1320.09})",
+        "prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 1313.4, 'prev_ema20': 1230.4})",
+        "genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 1320.0, 'curr_ema20': 1238.94})",
+        "prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 67.34)",
+        "curr_rsi_in_recovery_zone: Current RSI14 in [50.0, 65.0] (observed 68.19)",
+        "entry_near_ema20_cross: Close <= EMA20 * 1.04 (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "volume_breakout",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 1320.0); high_volume_participation: RVOL20 >= 1.50 (observed 1.09); intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 1238.94, 'ema50': 1240.52}); above_ema200: Close > EMA200 (observed 1320.0)",
+      "failed_conditions": [
+        "min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 1320.0)",
+        "high_volume_participation: RVOL20 >= 1.50 (observed 1.09)",
+        "intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 1238.94, 'ema50': 1240.52})",
+        "above_ema200: Close > EMA200 (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "trend_momentum",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09}); above_sma200: Close > SMA200 (observed 1320.0); rsi_in_range: 52 <= RSI14 <= 68 (observed 68.19); rvol_confirmation: RVOL20 >= 1.10 (observed 1.09); not_extended_from_ema20: Close <= EMA20 * 1.05 (observed 1320.0)",
+      "failed_conditions": [
+        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09})",
+        "above_sma200: Close > SMA200 (observed 1320.0)",
+        "rsi_in_range: 52 <= RSI14 <= 68 (observed 68.19)",
+        "rvol_confirmation: RVOL20 >= 1.10 (observed 1.09)",
+        "not_extended_from_ema20: Close <= EMA20 * 1.05 (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "consensus",
+      "date": "2026-11-06",
+      "reason": "Insufficient strategy agreement: 0/2",
+      "failed_conditions": [
+        "Only 0 independent strategies agreed (need 2)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "bollinger_squeeze",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 99.17); volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.09); trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09}); breakout_above_20_high: Close > Previous 20-session Highest High (observed 1320.0)",
+      "failed_conditions": [
+        "volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 99.17)",
+        "volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.09)",
+        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09})",
+        "breakout_above_20_high: Close > Previous 20-session Highest High (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "bullish_pullback",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 1240.52, 'ema200': 1320.09}); prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 1313.4, 'prev_ema20': 1230.4}); genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 1320.0, 'curr_ema20': 1238.94}); prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 67.34); curr_rsi_in_recovery_zone: Current RSI14 in [50.0, 65.0] (observed 68.19); entry_near_ema20_cross: Close <= EMA20 * 1.04 (observed 1320.0)",
+      "failed_conditions": [
+        "macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 1240.52, 'ema200': 1320.09})",
+        "prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 1313.4, 'prev_ema20': 1230.4})",
+        "genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 1320.0, 'curr_ema20': 1238.94})",
+        "prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 67.34)",
+        "curr_rsi_in_recovery_zone: Current RSI14 in [50.0, 65.0] (observed 68.19)",
+        "entry_near_ema20_cross: Close <= EMA20 * 1.04 (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "volume_breakout",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 1320.0); high_volume_participation: RVOL20 >= 1.50 (observed 1.09); intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 1238.94, 'ema50': 1240.52}); above_ema200: Close > EMA200 (observed 1320.0)",
+      "failed_conditions": [
+        "min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 1320.0)",
+        "high_volume_participation: RVOL20 >= 1.50 (observed 1.09)",
+        "intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 1238.94, 'ema50': 1240.52})",
+        "above_ema200: Close > EMA200 (observed 1320.0)"
+      ]
+    },
+    {
+      "symbol": "RELIANCE",
+      "strategy_id": "trend_momentum",
+      "date": "2026-11-06",
+      "reason": "Failed conditions: trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09}); above_sma200: Close > SMA200 (observed 1320.0); rsi_in_range: 52 <= RSI14 <= 68 (observed 68.19); rvol_confirmation: RVOL20 >= 1.10 (observed 1.09); not_extended_from_ema20: Close <= EMA20 * 1.05 (observed 1320.0)",
+      "failed_conditions": [
+        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 1238.94, 'ema50': 1240.52, 'ema200': 1320.09})",
+        "above_sma200: Close > SMA200 (observed 1320.0)",
+        "rsi_in_range: 52 <= RSI14 <= 68 (observed 68.19)",
+        "rvol_confirmation: RVOL20 >= 1.10 (observed 1.09)",
+        "not_extended_from_ema20: Close <= EMA20 * 1.05 (observed 1320.0)"
+      ]
+    },
+    {
       "symbol": "WIPRO",
       "strategy_id": "consensus",
       "date": "2026-11-06",
@@ -231,123 +351,6 @@
         "rsi_in_range: 52 <= RSI14 <= 68 (observed 68.59)",
         "adx_trend_strength: ADX14 >= 20 (observed 19.13)",
         "not_extended_from_ema20: Close <= EMA20 * 1.05 (observed 1322.9)"
-      ]
-    },
-    {
-      "symbol": "NTPC",
-      "strategy_id": "consensus",
-      "date": "2026-11-06",
-      "reason": "Insufficient strategy agreement: 0/2",
-      "failed_conditions": [
-        "Only 0 independent strategies agreed (need 2)"
-      ]
-    },
-    {
-      "symbol": "NTPC",
-      "strategy_id": "bollinger_squeeze",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 81.67); breakout_above_prior_upper_bb: Close > Prior Upper BB (observed 323.45); volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.29); trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 315.07, 'ema50': 321.27, 'ema200': 342.06}); adx_rising: Current ADX14 > Prior ADX14 (observed {'curr_adx': 32.51, 'prev_adx': 34.97}); breakout_above_20_high: Close > Previous 20-session Highest High (observed 323.45)",
-      "failed_conditions": [
-        "volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 81.67)",
-        "breakout_above_prior_upper_bb: Close > Prior Upper BB (observed 323.45)",
-        "volume_expansion_rvol: RVOL20 >= 1.50 (observed 1.29)",
-        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 315.07, 'ema50': 321.27, 'ema200': 342.06})",
-        "adx_rising: Current ADX14 > Prior ADX14 (observed {'curr_adx': 32.51, 'prev_adx': 34.97})",
-        "breakout_above_20_high: Close > Previous 20-session Highest High (observed 323.45)"
-      ]
-    },
-    {
-      "symbol": "NTPC",
-      "strategy_id": "bullish_pullback",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 321.27, 'ema200': 342.06}); prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 316.7, 'prev_ema20': 314.19}); genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 323.45, 'curr_ema20': 315.07}); prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 51.55)",
-      "failed_conditions": [
-        "macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 321.27, 'ema200': 342.06})",
-        "prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 316.7, 'prev_ema20': 314.19})",
-        "genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 323.45, 'curr_ema20': 315.07})",
-        "prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 51.55)"
-      ]
-    },
-    {
-      "symbol": "NTPC",
-      "strategy_id": "volume_breakout",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 323.45); high_volume_participation: RVOL20 >= 1.50 (observed 1.29); intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 315.07, 'ema50': 321.27}); above_ema200: Close > EMA200 (observed 323.45)",
-      "failed_conditions": [
-        "min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 323.45)",
-        "high_volume_participation: RVOL20 >= 1.50 (observed 1.29)",
-        "intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 315.07, 'ema50': 321.27})",
-        "above_ema200: Close > EMA200 (observed 323.45)"
-      ]
-    },
-    {
-      "symbol": "NTPC",
-      "strategy_id": "trend_momentum",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 315.07, 'ema50': 321.27, 'ema200': 342.06}); above_sma200: Close > SMA200 (observed 323.45)",
-      "failed_conditions": [
-        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 315.07, 'ema50': 321.27, 'ema200': 342.06})",
-        "above_sma200: Close > SMA200 (observed 323.45)"
-      ]
-    },
-    {
-      "symbol": "ONGC",
-      "strategy_id": "consensus",
-      "date": "2026-11-06",
-      "reason": "Insufficient strategy agreement: 0/2",
-      "failed_conditions": [
-        "Only 0 independent strategies agreed (need 2)"
-      ]
-    },
-    {
-      "symbol": "ONGC",
-      "strategy_id": "bollinger_squeeze",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 37.5); breakout_above_prior_upper_bb: Close > Prior Upper BB (observed 231.76); trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 228.85, 'ema50': 231.1, 'ema200': 245.2}); rsi_expansion_zone: 55 <= RSI14 <= 72 (observed 54.2); adx_rising: Current ADX14 > Prior ADX14 (observed {'curr_adx': 19.78, 'prev_adx': 20.3}); breakout_above_20_high: Close > Previous 20-session Highest High (observed 231.76)",
-      "failed_conditions": [
-        "volatility_squeeze_percentile: Prior BB width <= 20th percentile of prior 120 sessions (observed 37.5)",
-        "breakout_above_prior_upper_bb: Close > Prior Upper BB (observed 231.76)",
-        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 228.85, 'ema50': 231.1, 'ema200': 245.2})",
-        "rsi_expansion_zone: 55 <= RSI14 <= 72 (observed 54.2)",
-        "adx_rising: Current ADX14 > Prior ADX14 (observed {'curr_adx': 19.78, 'prev_adx': 20.3})",
-        "breakout_above_20_high: Close > Previous 20-session Highest High (observed 231.76)"
-      ]
-    },
-    {
-      "symbol": "ONGC",
-      "strategy_id": "bullish_pullback",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 231.1, 'ema200': 245.2}); prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 230.0, 'prev_ema20': 228.54}); genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 231.76, 'curr_ema20': 228.85}); prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 51.88); macd_histogram_turning_up: Current MACD histogram > Prior MACD histogram (observed {'curr_hist': 1.0677, 'prev_hist': 1.1802})",
-      "failed_conditions": [
-        "macro_bullish_structure: EMA50 > EMA200 (observed {'ema50': 231.1, 'ema200': 245.2})",
-        "prior_pullback_below_ema20: Prior Close <= Prior EMA20 (observed {'prev_close': 230.0, 'prev_ema20': 228.54})",
-        "genuine_ema20_cross: Current Close > EMA20 (Genuine cross after pullback) (observed {'curr_close': 231.76, 'curr_ema20': 228.85})",
-        "prior_rsi_in_pullback_zone: Prior RSI14 in [38.0, 50.0] (observed 51.88)",
-        "macd_histogram_turning_up: Current MACD histogram > Prior MACD histogram (observed {'curr_hist': 1.0677, 'prev_hist': 1.1802})"
-      ]
-    },
-    {
-      "symbol": "ONGC",
-      "strategy_id": "volume_breakout",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 231.76); intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 228.85, 'ema50': 231.1}); above_ema200: Close > EMA200 (observed 231.76); breakout_momentum_rsi: 55 <= RSI14 <= 75 (observed 54.2); adx_trend_strength: ADX14 >= 20 (observed 19.78)",
-      "failed_conditions": [
-        "min_breakout_confirmed: Close >= previous_20_high * 1.005 (observed 231.76)",
-        "intermediate_trend_up: EMA20 > EMA50 (observed {'ema20': 228.85, 'ema50': 231.1})",
-        "above_ema200: Close > EMA200 (observed 231.76)",
-        "breakout_momentum_rsi: 55 <= RSI14 <= 75 (observed 54.2)",
-        "adx_trend_strength: ADX14 >= 20 (observed 19.78)"
-      ]
-    },
-    {
-      "symbol": "ONGC",
-      "strategy_id": "trend_momentum",
-      "date": "2026-11-06",
-      "reason": "Failed conditions: trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 228.85, 'ema50': 231.1, 'ema200': 245.2}); above_sma200: Close > SMA200 (observed 231.76); adx_trend_strength: ADX14 >= 20 (observed 19.78)",
-      "failed_conditions": [
-        "trend_alignment: EMA20 > EMA50 > EMA200 (observed {'ema20': 228.85, 'ema50': 231.1, 'ema200': 245.2})",
-        "above_sma200: Close > SMA200 (observed 231.76)",
-        "adx_trend_strength: ADX14 >= 20 (observed 19.78)"
       ]
     }
   ],

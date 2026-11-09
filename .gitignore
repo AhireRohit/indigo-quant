@@ -59,5 +59,6 @@ data/*.lock
 data/*.pid
 data/sent_alerts.json
 data/heartbeat.json
+deployment/*.vbs
 logs/*.log
 *.log

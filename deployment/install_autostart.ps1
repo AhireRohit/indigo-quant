@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installs INDIGO QUANT Autonomous Scheduler as a persistent Windows Scheduled Task.
 
@@ -35,7 +35,7 @@ if (-not (Test-Path $VenvPython)) {
 }
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  INDIGO QUANT — Windows Task Scheduler Autostart Installer " -ForegroundColor Cyan
+Write-Host "  INDIGO QUANT - Windows Task Scheduler Autostart Installer " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "Project Directory: $ProjectRoot"
 Write-Host "Python Executable: $VenvPython"
@@ -67,7 +67,11 @@ $Action = New-ScheduledTaskAction `
     -WorkingDirectory $ProjectRoot
 
 # 3. Define Triggers (At User Logon)
-$Trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+$UserAccount = "$env:USERDOMAIN\$env:USERNAME"
+if (-not $env:USERDOMAIN) {
+    $UserAccount = $env:USERNAME
+}
+$Trigger = New-ScheduledTaskTrigger -AtLogOn -User $UserAccount
 
 # 4. Configure Robust Settings
 $Settings = New-ScheduledTaskSettingsSet `
@@ -95,11 +99,11 @@ try {
     Write-Host "[SUCCESS] Task '$TaskName' registered successfully with Windows Task Scheduler!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Task Details:" -ForegroundColor Cyan
-    Write-Host "  • Name: $TaskName"
-    Write-Host "  • Trigger: At Logon for user $env:USERNAME"
-    Write-Host "  • Execution: Silent background daemon via $LauncherScript"
-    Write-Host "  • Auto-Restart: 3 attempts every 1 minute on failure"
-    Write-Host "  • Working Dir: $ProjectRoot"
+    Write-Host "  - Name: $TaskName"
+    Write-Host "  - Trigger: At Logon for user $UserAccount"
+    Write-Host "  - Execution: Silent background daemon via $LauncherScript"
+    Write-Host "  - Auto-Restart: 3 attempts every 1 minute on failure"
+    Write-Host "  - Working Dir: $ProjectRoot"
     Write-Host ""
     Write-Host "To start the task immediately:" -ForegroundColor Yellow
     Write-Host "  Start-ScheduledTask -TaskName '$TaskName'" -ForegroundColor White

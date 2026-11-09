@@ -1,10 +1,10 @@
 {
   "status": "HEALTHY",
-  "last_audit_ist": "2026-11-09 08:09:56 IST",
+  "last_audit_ist": "2026-11-09 16:22:17 IST",
   "latest_completed_market_day": "2026-11-06",
   "scheduler": {
-    "is_active": true,
-    "last_heartbeat": "2026-11-09 08:09:56 IST",
+    "is_active": false,
+    "last_heartbeat": "N/A",
     "next_scheduled_run": "19:15 IST (Mon-Fri)",
     "missed_recovery_enabled": true
   },

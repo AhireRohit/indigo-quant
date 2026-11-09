@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Service Management Tool for INDIGO QUANT on Windows 11.
 
@@ -51,7 +51,7 @@ function Get-DaemonStatus {
 switch ($Action) {
     "status" {
         Write-Host "============================================================" -ForegroundColor Cyan
-        Write-Host "  INDIGO QUANT — Autonomous Engine Status Probe             " -ForegroundColor Cyan
+        Write-Host "  INDIGO QUANT - Autonomous Engine Status Probe             " -ForegroundColor Cyan
         Write-Host "============================================================" -ForegroundColor Cyan
 
         $st = Get-DaemonStatus
@@ -77,18 +77,22 @@ switch ($Action) {
                 $hb = Get-Content $HeartbeatFile -Raw | ConvertFrom-Json
                 Write-Host ""
                 Write-Host "Heartbeat Health:" -ForegroundColor Cyan
-                Write-Host "  • Engine Health:    $($hb.status)" -ForegroundColor ($hb.status -eq "HEALTHY" ? "Green" : "Yellow")
-                Write-Host "  • Started At:       $($hb.started_at)"
-                Write-Host "  • Last Heartbeat:   $($hb.last_heartbeat)"
-                Write-Host "  • Engine Uptime:    $($hb.uptime_seconds) seconds"
+                $healthColor = "Yellow"
+                if ($hb.status -eq "HEALTHY") {
+                    $healthColor = "Green"
+                }
+                Write-Host "  - Engine Health:    $($hb.status)" -ForegroundColor $healthColor
+                Write-Host "  - Started At:       $($hb.started_at)"
+                Write-Host "  - Last Heartbeat:   $($hb.last_heartbeat)"
+                Write-Host "  - Engine Uptime:    $($hb.uptime_seconds) seconds"
                 if ($hb.active_jobs) {
-                    Write-Host "  • Registered Jobs:  $($hb.active_jobs -join ', ')"
+                    Write-Host "  - Registered Jobs:  $($hb.active_jobs -join ', ')"
                 }
             } catch {
-                Write-Host "  • Could not parse heartbeat: $_" -ForegroundColor DarkGray
+                Write-Host "  - Could not parse heartbeat: $_" -ForegroundColor DarkGray
             }
         } else {
-            Write-Host "Heartbeat File:  Not found (Engine hasn't started yet)" -ForegroundColor DarkGray
+            Write-Host "Heartbeat File:  Not found (Engine has not started yet)" -ForegroundColor DarkGray
         }
 
         # Recent log snippet

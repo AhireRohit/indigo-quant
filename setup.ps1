@@ -1,10 +1,10 @@
-# INDIGO QUANT — Windows 11 PowerShell Setup and Validation Script
+﻿# INDIGO QUANT - Windows 11 PowerShell Setup and Validation Script
 # Automated environment setup, dependency installation, database initialization, and diagnostics.
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   INDIGO QUANT — AUTOMATED ENVIRONMENT SETUP" -ForegroundColor Cyan
+Write-Host "   INDIGO QUANT - AUTOMATED ENVIRONMENT SETUP" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 1. Check Python Version (>= 3.11)
@@ -17,8 +17,8 @@ if (-not $pythonExe) {
 $pyVersion = & python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"
 Write-Host "Found Python version: $pyVersion at $pythonExe" -ForegroundColor Green
 
-$versionCheck = & python -c "import sys; print(1 if sys.version_info >= (3, 11) else 0)"
-if ($versionCheck -ne "1") {
+& python -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
+if ($LASTEXITCODE -ne 0) {
     Write-Error "Python 3.11 or newer is required. Found Python $pyVersion"
 }
 
@@ -43,7 +43,7 @@ Write-Host "Dependencies installed successfully." -ForegroundColor Green
 # 4. Initialize Database and Seed Universe & Accounts
 Write-Host "`n[4/7] Initializing SQLite database and seeding 5 virtual portfolios..." -ForegroundColor Yellow
 & $venvPython -c "from indigo_quant.db.session import SessionLocal; from indigo_quant.db.repository import init_db, seed_universe_and_accounts; init_db(); db = SessionLocal(); seed_universe_and_accounts(db); db.close()"
-Write-Host "Database initialized with ₹1,00,000 virtual capital per strategy." -ForegroundColor Green
+Write-Host "Database initialized with Rs. 1,00,000 virtual capital per strategy." -ForegroundColor Green
 
 # 5. Validate Market Data Connectivity
 Write-Host "`n[5/7] Validating free market-data providers (TejHQ & Yahoo Finance)..." -ForegroundColor Yellow

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Exports sanitized public data and pushes snapshots to GitHub for Streamlit Cloud.
 
@@ -24,7 +24,7 @@ Set-Location $ProjectRoot
 $Python = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  INDIGO QUANT — Public Data Sync & Cloud Export Engine    " -ForegroundColor Cyan
+Write-Host "  INDIGO QUANT - Public Data Sync & Cloud Export Engine    " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
 # 1. Export fresh snapshots
