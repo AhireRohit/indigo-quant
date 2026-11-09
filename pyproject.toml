@@ -8,12 +8,10 @@ version = "1.0.0"
 description = "Autonomous Indian equity swing-trading research and paper-trading platform"
 authors = [{ name = "Indigo Quant Quantitative Research Team" }]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "pandas>=2.2.0,<3.0.0",
-    "numpy>=1.26.0,<2.2.0",
-    "scipy>=1.13.0",
-    "ta>=0.11.0",
+    "numpy>=1.26.0,<3.0.0",
     "yfinance>=0.2.40",
     "requests>=2.31.0",
     "httpx>=0.27.0",
