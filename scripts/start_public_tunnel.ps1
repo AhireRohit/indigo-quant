@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Starts the local Streamlit public dashboard and exposes it via a free HTTPS public tunnel.
+    Starts the local Streamlit public dashboard and exposes it via a high-performance Cloudflare HTTPS tunnel.
 
 .DESCRIPTION
     1. Launches Streamlit on port 8501 serving public_app.py (read-only, sanitized snapshots).
-    2. Opens an encrypted SSH reverse tunnel via Pinggy / localhost.run on port 443.
+    2. Opens an encrypted HTTPS Cloudflare Quick Tunnel via bin/cloudflared.exe.
     3. Outputs the public HTTPS URL for external sharing (e.g. ChatGPT analysis).
 
 .EXAMPLE
@@ -17,11 +17,11 @@ param()
 $ProjectRoot = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $ProjectRoot
 
-$Python = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 $Streamlit = Join-Path $ProjectRoot ".venv\Scripts\streamlit.exe"
+$Cloudflared = Join-Path $ProjectRoot "bin\cloudflared.exe"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  INDIGO QUANT - Free Public HTTPS Dashboard Host          " -ForegroundColor Cyan
+Write-Host "  INDIGO QUANT - Free Public Cloudflare HTTPS Dashboard     " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
 # 1. Check if Streamlit is already running on port 8501
@@ -34,9 +34,9 @@ if (-not $existingConn) {
     Write-Host "[1/2] Streamlit is already listening on port 8501." -ForegroundColor Green
 }
 
-# 2. Start SSH tunnel
-Write-Host "[2/2] Connecting encrypted HTTPS public tunnel..." -ForegroundColor Yellow
+# 2. Start Cloudflare Tunnel
+Write-Host "[2/2] Connecting Cloudflare HTTPS public tunnel..." -ForegroundColor Yellow
 Write-Host "Press Ctrl+C to terminate the tunnel when finished." -ForegroundColor Gray
 Write-Host ""
 
-& ssh -p 443 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -R0:localhost:8501 a.pinggy.io
+& $Cloudflared tunnel --url http://127.0.0.1:8501

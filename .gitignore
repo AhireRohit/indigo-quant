@@ -62,3 +62,5 @@ data/heartbeat.json
 deployment/*.vbs
 logs/*.log
 *.log
+bin/
+*.exe
