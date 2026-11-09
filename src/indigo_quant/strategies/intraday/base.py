@@ -35,6 +35,22 @@ class IntradayEvaluationResult(BaseModel):
     rejection_reason: Optional[str] = None
     candle_time: str = ""
 
+    @property
+    def quality_score(self) -> float:
+        return self.rule_quality_score
+
+    @property
+    def initial_stop_estimate(self) -> float:
+        return self.initial_stop_price
+
+    @property
+    def target_price_estimate(self) -> float:
+        return self.target_price
+
+    @property
+    def date(self) -> datetime.date:
+        return self.timestamp.date()
+
 
 class BaseIntradayStrategy(ABC):
     """Abstract Base Class for all 5-minute Intraday Strategy Agents."""
