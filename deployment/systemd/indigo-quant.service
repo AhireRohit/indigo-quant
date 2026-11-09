@@ -1,0 +1,18 @@
+[Unit]
+Description=Indigo Quant Autonomous Swing-Trading Research Engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/TRADER
+EnvironmentFile=/home/pi/TRADER/.env
+ExecStart=/home/pi/TRADER/.venv/bin/streamlit run src/indigo_quant/dashboard/app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/pi/TRADER/logs/indigo.log
+StandardError=append:/home/pi/TRADER/logs/indigo_error.log
+
+[Install]
+WantedBy=multi-user.target

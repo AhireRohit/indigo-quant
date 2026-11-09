@@ -1,0 +1,39 @@
+app:
+  name: "INDIGO QUANT"
+  version: "1.0.0"
+  environment: "development"
+  timezone: "Asia/Kolkata"
+
+market_data:
+  primary_provider: "tejhq"
+  secondary_provider: "yahoo"
+  benchmark_symbol: "^NSEI"
+  cache_dir: "./data/cache"
+  min_required_sessions: 260
+  price_discrepancy_tolerance_pct: 2.0
+  freshness_eod_hour_ist: 18
+  freshness_eod_minute_ist: 30
+  eod_scan_hour_ist: 19
+  eod_scan_minute_ist: 15
+  eod_retry_hour_ist: 22
+  eod_retry_minute_ist: 0
+
+universe:
+  universe_file: "./config/universe.csv"
+  min_price: 75.0
+  min_avg_traded_value_20d: 50000000.0  # ₹5 Crore
+  exchange_priority: ["NSE", "BSE"]
+
+database:
+  url: "sqlite:///./data/indigo_quant.db"
+  pool_recycle: 3600
+  echo: false
+
+server:
+  host: "127.0.0.1"
+  api_port: 8000
+  dashboard_port: 8501
+
+telegram:
+  enabled: true
+  rate_limit_seconds: 3

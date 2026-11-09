@@ -1,0 +1,62 @@
+{
+  "trend_momentum": {
+    "account_id": "trend_momentum",
+    "account_name": "Agent A: Trend Momentum",
+    "cash": 101232.13,
+    "equity": 100000.0,
+    "open_positions": [],
+    "closed_positions": [
+      {
+        "id": 1,
+        "symbol": "RELIANCE",
+        "strategy_id": "trend_momentum",
+        "quantity": 10,
+        "entry_date": "2026-11-09",
+        "entry_price": 1321.32,
+        "current_stop": 1268.47,
+        "target_price": 1453.45,
+        "sessions_held": 1,
+        "status": "CLOSED",
+        "closed_date": "2026-11-16",
+        "close_price": 1452.0,
+        "close_reason": "TARGET_HIT",
+        "realized_pnl_net": 1232.13,
+        "realized_pnl_gross": 1306.8,
+        "total_fees_paid": 74.67,
+        "target_achieved": true
+      }
+    ]
+  },
+  "volume_breakout": {
+    "account_id": "volume_breakout",
+    "account_name": "Agent B: Volume Breakout",
+    "cash": 100000.0,
+    "equity": 100000.0,
+    "open_positions": [],
+    "closed_positions": []
+  },
+  "bullish_pullback": {
+    "account_id": "bullish_pullback",
+    "account_name": "Agent C: Bullish Pullback Recovery",
+    "cash": 100000.0,
+    "equity": 100000.0,
+    "open_positions": [],
+    "closed_positions": []
+  },
+  "bollinger_squeeze": {
+    "account_id": "bollinger_squeeze",
+    "account_name": "Agent D: Bollinger Squeeze Breakout",
+    "cash": 100000.0,
+    "equity": 100000.0,
+    "open_positions": [],
+    "closed_positions": []
+  },
+  "consensus": {
+    "account_id": "consensus",
+    "account_name": "Agent E: Multi-Agent Consensus",
+    "cash": 100000.0,
+    "equity": 100000.0,
+    "open_positions": [],
+    "closed_positions": []
+  }
+}

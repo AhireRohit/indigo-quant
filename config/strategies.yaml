@@ -1,0 +1,83 @@
+# Baseline Versioned Trading Strategy Definitions
+version: "1.0.0"
+
+strategies:
+  momentum:
+    id: "trend_momentum"
+    name: "Agent A: Trend Momentum"
+    version: "1.0.0"
+    enabled: true
+    initial_capital: 100000.0
+    description: "Identifies liquid stocks demonstrating sustained bullish strength with trend and momentum alignment."
+    rules:
+      trend_alignment: "EMA20 > EMA50 > EMA200"
+      long_term_trend: "close > SMA200"
+      near_term_trend: "close >= EMA20"
+      rsi_range: [52.0, 68.0]
+      macd_cross: "MACD_line > MACD_signal"
+      macd_hist_positive: "MACD_histogram > 0"
+      adx_min: 20.0
+      rvol20_min: 1.10
+      max_extension_ema20_pct: 5.0  # close <= EMA20 * 1.05
+      five_session_return_positive: true
+
+  breakout:
+    id: "volume_breakout"
+    name: "Agent B: Volume Breakout"
+    version: "1.0.0"
+    enabled: true
+    initial_capital: 100000.0
+    description: "Identifies stocks breaking above 20-session resistance with decisive volume participation."
+    rules:
+      min_breakout_pct: 0.5   # close >= previous_20_high * 1.005
+      max_breakout_pct: 4.0   # close <= previous_20_high * 1.04
+      rvol20_min: 1.50
+      ema_trend: "EMA20 > EMA50"
+      above_ema200: "close > EMA200"
+      rsi_range: [55.0, 75.0]
+      adx_min: 20.0
+      max_atr_pct: 5.0        # ATR14 / close <= 0.05
+      upper_range_threshold: 0.75 # close in upper 25% of day's high-low range
+
+  pullback:
+    id: "bullish_pullback"
+    name: "Agent C: Bullish Pullback Recovery"
+    version: "1.0.0"
+    enabled: true
+    initial_capital: 100000.0
+    description: "Identifies structurally bullish stocks recovering after a controlled pullback to EMA20."
+    rules:
+      structure_trend: "EMA50 > EMA200"
+      above_ema50: "close > EMA50"
+      prev_close_le_prev_ema20: true
+      curr_close_gt_curr_ema20: true  # genuine cross
+      prev_rsi_range: [38.0, 50.0]
+      curr_rsi_range: [50.0, 65.0]
+      macd_hist_increasing: true      # MACD_hist[0] > MACD_hist[-1]
+      rvol20_min: 0.90
+      max_extension_ema20_pct: 4.0    # close <= EMA20 * 1.04
+
+  squeeze:
+    id: "bollinger_squeeze"
+    name: "Agent D: Bollinger Squeeze Breakout"
+    version: "1.0.0"
+    enabled: true
+    initial_capital: 100000.0
+    description: "Identifies volatility compression followed by upward expansion breaking prior 20-day resistance."
+    rules:
+      squeeze_percentile_max: 20.0    # prev BB width <= 20th percentile of prior 120 sessions
+      breakout_upper_band: true       # close > prev upper BB
+      rvol20_min: 1.50
+      trend_alignment: "EMA20 > EMA50 > EMA200"
+      rsi_range: [55.0, 72.0]
+      adx_increasing: true            # curr ADX14 > prev ADX14
+      breakout_20_high: true          # close > previous 20-session highest high
+
+  consensus:
+    id: "consensus"
+    name: "Agent E: Multi-Agent Consensus"
+    version: "1.0.0"
+    enabled: true
+    initial_capital: 100000.0
+    description: "Selects stocks where at least two independent strategies issue eligible BUY signals."
+    min_agent_agreement: 2

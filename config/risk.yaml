@@ -1,0 +1,34 @@
+risk:
+  version: "1.0.0"
+  initial_capital: 100000.0
+  max_risk_per_trade_pct: 0.005      # 0.5% of current equity
+  max_position_allocation_pct: 0.20  # 20% of current equity
+  max_open_positions: 5
+  max_portfolio_exposure_pct: 0.75   # 75% max capital deployed
+  
+  # Target & Stops
+  profit_target_gross_pct: 0.10      # +10.0% gross profit target
+  min_stop_distance_pct: 0.02        # Minimum 2.0% stop distance
+  max_stop_distance_pct: 0.05        # Maximum 5.0% stop distance (volatility filter)
+  atr_stop_multiplier: 1.5           # 1.5 * ATR14
+  min_reward_to_risk: 2.0            # Minimum gross reward:risk ratio
+  time_exit_sessions: 20             # Close after 20 completed sessions
+
+  # Entry Filters
+  max_entry_gap_pct: 0.05            # Cancel entry if gap > 5% above signal close
+  signal_validity_sessions: 2        # Cancel pending order after 2 sessions
+
+# Indian Equity Delivery Transaction Fee Model
+# Verified against NSE/SEBI delivery equity circulars as of 2024-2025
+transaction_costs:
+  as_of_date: "2024-10-01"
+  brokerage_pct: 0.0                 # Zero-brokerage model for delivery equity (discount broker standard)
+  brokerage_max_inr: 20.0
+  stt_buy_pct: 0.0010                # 0.10% Securities Transaction Tax on delivery buy
+  stt_sell_pct: 0.0010               # 0.10% STT on delivery sell
+  exchange_txn_charge_pct: 0.0000297 # 0.00297% NSE transaction charge
+  gst_pct: 0.18                      # 18% GST on (brokerage + exchange txn + SEBI charges)
+  sebi_turnover_pct: 0.000001        # ₹10 per crore (0.0001%) SEBI turnover fee
+  stamp_duty_buy_pct: 0.00015        # 0.015% Stamp duty on delivery buy only
+  dp_charges_sell_flat_inr: 15.93    # ₹13.50 + 18% GST = ₹15.93 Depository Participant charge per sell
+  slippage_pct: 0.0010               # 0.10% modeled slippage on simulated fills

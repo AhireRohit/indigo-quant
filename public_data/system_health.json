@@ -1,0 +1,33 @@
+{
+  "status": "HEALTHY",
+  "last_audit_ist": "2026-11-09 08:09:56 IST",
+  "latest_completed_market_day": "2026-11-06",
+  "scheduler": {
+    "is_active": true,
+    "last_heartbeat": "2026-11-09 08:09:56 IST",
+    "next_scheduled_run": "19:15 IST (Mon-Fri)",
+    "missed_recovery_enabled": true
+  },
+  "last_scan": {
+    "timestamp": null,
+    "status": "N/A",
+    "message": "No recent scan"
+  },
+  "data_providers": {
+    "tejhq": {
+      "status": "OPERATIONAL",
+      "tier": "Free Verified",
+      "description": "Primary EOD & Actions"
+    },
+    "yfinance": {
+      "status": "OPERATIONAL",
+      "tier": "Free",
+      "description": "Fallback & ^NSEI Benchmark"
+    }
+  },
+  "hosting": {
+    "engine": "Windows 11 Laptop Autonomous Daemon",
+    "dashboard": "Streamlit Community Cloud (Read-Only)",
+    "data_sync": "Continuous Git Snapshot Push"
+  }
+}
