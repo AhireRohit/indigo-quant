@@ -258,3 +258,110 @@ def test_end_of_session_forced_square_off():
     assert trade.exit_reason == "END_OF_SESSION_EXIT"
     assert len(acc.open_positions) == 0
     assert len(acc.closed_trades) == 1
+
+
+def test_replay_completed_roundtrip_fees_slippage_and_cash_reconciliation():
+    """
+    Regression Test: Verify a completed round trip with fees and slippage on both sides.
+    Asserts that:
+    1. Displayed entry and exit prices (with slippage) exactly reproduce gross P&L: (exit - entry) * qty.
+    2. Total charges strictly include both buy-side and sell-side statutory fees without double counting.
+    3. Net P&L = Gross P&L - Total Charges.
+    4. Ending cash and equity reconcile with starting capital + sum(net_pnl) to 0.00 paise.
+    """
+    broker = ReplayBroker(strategies=["intraday_vwap_momentum"], initial_capital_per_agent=100000.0, mode="INTRADAY")
+    acc = broker.accounts["intraday_vwap_momentum"]
+    start_capital = acc.cash
+
+    # 1. Queue and execute BUY order
+    broker.queue_buy_order(
+        strategy_id="intraday_vwap_momentum",
+        symbol="RELIANCE",
+        signal_price=1316.50,
+        stop_price=1280.0,
+        target_price=1400.0,
+        signal_time=datetime.datetime(2026, 11, 9, 10, 0),
+    )
+    fill_results = broker.process_pending_orders_at_open("RELIANCE", candle_open=1316.50, candle_time=datetime.datetime(2026, 11, 9, 10, 5))
+    assert len(fill_results) == 1
+    assert len(acc.open_positions) == 1
+    pos = acc.open_positions[0]
+
+    # Verify BUY cash deduction
+    expected_buy_amount = round(pos.entry_price * pos.quantity, 2)
+    expected_buy_outlay = round(expected_buy_amount + pos.buy_fee, 2)
+    assert acc.cash == round(start_capital - expected_buy_outlay, 2)
+
+    # 2. Execute profitable target exit candle
+    exit_candle = {
+        "open": 1350.0,
+        "high": 1405.0,  # Pierces target
+        "low": 1340.0,
+        "close": 1400.0,
+        "time": datetime.datetime(2026, 11, 9, 11, 0),
+    }
+    closed_trades = broker.evaluate_candle_exits("RELIANCE", exit_candle)
+    assert len(closed_trades) == 1
+    trade, msg = closed_trades[0]
+
+    # 3. Assert exact mathematical reconciliation across all records
+    calc_gross = round((trade.exit_price - trade.entry_price) * trade.quantity, 2)
+    assert trade.gross_pnl == calc_gross, f"Gross PnL {trade.gross_pnl} does not match (exit - entry)*qty {calc_gross}"
+
+    expected_total_fees = round(trade.buy_fee + trade.sell_fee, 2)
+    assert trade.total_charges == expected_total_fees
+    assert trade.buy_fee > 0.0
+    assert trade.sell_fee > 0.0
+
+    calc_net = round(trade.gross_pnl - trade.total_charges, 2)
+    assert trade.net_pnl == calc_net
+
+    # 4. Cash Ledger & Equity Reconciliation (Zero paise discrepancy)
+    assert len(acc.open_positions) == 0
+    expected_ending_cash = round(start_capital + trade.net_pnl, 2)
+    assert acc.cash == expected_ending_cash
+    assert acc.total_equity == expected_ending_cash
+    discrepancy = round((acc.initial_capital + trade.net_pnl) - acc.total_equity, 2)
+    assert discrepancy == 0.00
+
+
+def test_reliance_session_reconciliation_zero_discrepancy():
+    """
+    Verify complete session replay for RELIANCE (2026-11-05 5m Intraday)
+    reconciles all 4 trades, fees, cash ledger, and equity with ZERO discrepancy.
+    """
+    engine = ReplayEngine(
+        symbol="RELIANCE",
+        session_date=datetime.date(2026, 11, 5),
+        interval="5m",
+        mode="INTRADAY",
+    )
+    loaded = engine.load_data()
+    assert loaded is True
+    engine.step_to(engine.total_steps)
+
+    acc = engine.broker.accounts["intraday_vwap_momentum"]
+    assert len(acc.closed_trades) == 4
+    assert len(acc.open_positions) == 0
+
+    total_gross = sum(t.gross_pnl for t in acc.closed_trades)
+    total_buy_fees = sum(t.buy_fee for t in acc.closed_trades)
+    total_sell_fees = sum(t.sell_fee for t in acc.closed_trades)
+    total_fees = sum(t.total_charges for t in acc.closed_trades)
+    total_net = sum(t.net_pnl for t in acc.closed_trades)
+
+    # Verify each trade individually
+    for t in acc.closed_trades:
+        assert t.gross_pnl == round((t.exit_price - t.entry_price) * t.quantity, 2)
+        assert t.total_charges == round(t.buy_fee + t.sell_fee, 2)
+        assert t.net_pnl == round(t.gross_pnl - t.total_charges, 2)
+
+    # Verify totals
+    assert round(total_fees, 2) == round(total_buy_fees + total_sell_fees, 2)
+    assert round(total_net, 2) == round(total_gross - total_fees, 2)
+
+    # Verify perfect reconciliation between cash ledger and trade net PnLs
+    expected_equity = round(acc.initial_capital + total_net, 2)
+    assert round(acc.cash, 2) == expected_equity
+    assert round(acc.total_equity, 2) == expected_equity
+    assert round((acc.initial_capital + total_net) - acc.total_equity, 2) == 0.00

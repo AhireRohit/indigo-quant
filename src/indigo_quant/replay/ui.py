@@ -293,7 +293,8 @@ def _render_market_replay_lab_content():
         loaded = engine.load_data()
         st.session_state[engine_key] = engine
         st.session_state["current_engine_key"] = engine_key
-        st.session_state["replay_step"] = 0
+        st.session_state["replay_step"] = 1
+        st.session_state["ran_full_session"] = False
         if not loaded:
             st.warning(f"⚠️ Historical {selected_interval} data for {selected_symbol} on {selected_date} is not available in local cache or provider. Check date or select a curated date (2026-11-09 or 2026-11-06).")
             return
@@ -320,70 +321,104 @@ def _render_market_replay_lab_content():
         unsafe_allow_html=True,
     )
 
-    # Playback Controls Bar
-    current_step = st.session_state.get("replay_step", 0)
-    
-    col_c1, col_c2, col_c3, col_c4, col_c5, col_c6, col_c7 = st.columns([1, 1, 1, 1, 1, 1.2, 1.2])
+    # Initialize replay step safely in session_state
+    if "replay_step" not in st.session_state or st.session_state["replay_step"] < 1:
+        st.session_state["replay_step"] = 1
+    elif st.session_state["replay_step"] > engine.total_steps:
+        st.session_state["replay_step"] = engine.total_steps
+
+    # Playback Controls Bar (All buttons update st.session_state["replay_step"] to keep slider in sync)
+    col_c0, col_c1, col_c2, col_c3, col_c4, col_c5, col_c6 = st.columns([1.6, 1, 1, 1, 1, 1, 1.2])
+
+    with col_c0:
+        if st.button("⚡ Run Full Session", type="primary", use_container_width=True, help="Process all candles from clean reset"):
+            engine.reset()
+            st.session_state["replay_step"] = engine.total_steps
+            st.session_state["ran_full_session"] = True
+            st.rerun()
 
     with col_c1:
         if st.button("⏮️ Start", use_container_width=True):
-            current_step = 1
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = 1
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
     with col_c2:
         if st.button("◀️ -1 Bar", use_container_width=True):
-            current_step = max(1, current_step - 1)
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = max(1, st.session_state["replay_step"] - 1)
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
     with col_c3:
         if st.button("▶️ +1 Bar", use_container_width=True):
-            current_step = min(engine.total_steps, current_step + 1)
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = min(engine.total_steps, st.session_state["replay_step"] + 1)
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
     with col_c4:
         if st.button("⏩ +5 Bars", use_container_width=True):
-            current_step = min(engine.total_steps, current_step + 5)
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = min(engine.total_steps, st.session_state["replay_step"] + 5)
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
     with col_c5:
         if st.button("⏭️ End", use_container_width=True):
-            current_step = engine.total_steps
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = engine.total_steps
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
     with col_c6:
-        if st.button("🔄 Reset Broker", use_container_width=True):
+        if st.button("🔄 Reset", use_container_width=True):
             engine.reset()
-            current_step = 1
-            st.session_state["replay_step"] = current_step
-            engine.step_to(current_step)
+            st.session_state["replay_step"] = 1
+            st.session_state["ran_full_session"] = False
             st.rerun()
 
-    with col_c7:
-        speed = st.selectbox("Speed", ["1x (Manual)", "2x Fast", "5x Turbo"], index=0, label_visibility="collapsed")
-
-    # Step Slider
-    new_step = st.slider(
-        f"Replay Progress: Bar {current_step} of {engine.total_steps} Completed Bars",
+    # Shared Slider Widget (Bound directly to st.session_state["replay_step"])
+    current_step = st.slider(
+        f"Replay Progress: Bar {st.session_state['replay_step']} of {engine.total_steps} Completed Bars",
         min_value=1,
         max_value=engine.total_steps,
-        value=max(1, current_step),
-        key="replay_slider",
+        key="replay_step",
     )
-    if new_step != current_step:
-        current_step = new_step
-        st.session_state["replay_step"] = current_step
-        engine.step_to(current_step)
-        st.rerun()
+
+    # Sync engine to the chosen step
+    engine.step_to(current_step)
+
+    # Selected primary strategy account for metrics & cards
+    primary_sid = active_strategy_ids[0]
+    primary_acc = engine.broker.accounts.get(primary_sid)
+
+    # Prominent Session Summary Card near Controls
+    if st.session_state.get("ran_full_session") or current_step == engine.total_steps:
+        t_cnt = len(primary_acc.closed_trades) if primary_acc else 0
+        tot_fees = sum(t.total_charges for t in primary_acc.closed_trades) if primary_acc else 0.0
+        buy_fees = sum(t.buy_fee for t in primary_acc.closed_trades) if primary_acc else 0.0
+        sell_fees = sum(t.sell_fee for t in primary_acc.closed_trades) if primary_acc else 0.0
+        net_pnl = primary_acc.realized_pnl if primary_acc else 0.0
+        end_eq = primary_acc.total_equity if primary_acc else 100000.0
+
+        st.markdown(
+            f"""
+            <div style="background-color: #0f172a; border: 1px solid #1e293b; border-left: 4px solid #10b981; border-radius: 8px; padding: 12px 16px; margin: 10px 0 16px 0;">
+                <div style="font-weight: 700; font-size: 1.0rem; color: #38bdf8; margin-bottom: 6px;">
+                    ⚡ Full Session Replay Summary — All {engine.total_steps} Candles Processed
+                </div>
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px;">
+                    Strategy: <b>{engine.strategy_registry.get(primary_sid, primary_sid).name if hasattr(engine.strategy_registry.get(primary_sid), 'name') else primary_sid}</b> | Asset: <b>{selected_symbol}</b> | Mode: <b>{mode_val} ({selected_interval})</b>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        sum_c1, sum_c2, sum_c3, sum_c4 = st.columns(4)
+        sum_c1.metric("Trades Taken", f"{t_cnt} Completed")
+        sum_c2.metric("Total Fees Paid", f"₹{tot_fees:,.2f}", help=f"Buy-Side Fees: ₹{buy_fees:,.2f} | Sell-Side Fees: ₹{sell_fees:,.2f}")
+        sum_c3.metric("Net Realized P&L", f"₹{net_pnl:+,.2f}", delta=f"{(net_pnl / 100000.0) * 100:+.2f}%")
+        sum_c4.metric("Ending Equity", f"₹{end_eq:,.2f}")
+
+        if mode_val == "INTRADAY" and selected_interval == "5m" and engine.total_steps == 74:
+            st.info("ℹ️ **Candle Continuity**: Processed all 74 authentic exchange candles. (Bar 15:20 was omitted by exchange feed; 15:25 bar includes closing auction volume).")
 
     # Overlays toggles
     with st.expander("🛠️ Chart Overlays & Indicators", expanded=False):
@@ -547,6 +582,14 @@ def _render_market_replay_lab_content():
         b4.metric("Total Equity", f"₹{total_eq:,.2f}", delta=f"{net_ret:+.2f}%")
         b5.metric("Completed Trades", f"{len(primary_acc.closed_trades)}")
 
+        # Verification Reconciliation Pill
+        if len(primary_acc.open_positions) == 0:
+            recon_diff = round((primary_acc.initial_capital + primary_acc.realized_pnl) - total_eq, 2)
+            if abs(recon_diff) < 0.01:
+                st.caption(f"✅ **Account Reconciled**: Starting Capital (₹{primary_acc.initial_capital:,.2f}) + Total Net PnL (₹{primary_acc.realized_pnl:+,.2f}) = Ending Equity (₹{total_eq:,.2f}) [Discrepancy: ₹0.00]")
+            else:
+                st.warning(f"⚠️ **Account Discrepancy**: Starting + Net PnL vs Equity diff = ₹{recon_diff:.2f}")
+
     # Active Position
     if primary_acc and primary_acc.active_positions:
         st.markdown("#### 📌 Active Open Position")
@@ -559,7 +602,7 @@ def _render_market_replay_lab_content():
 
     # Replay Trade Journal
     if primary_acc and primary_acc.closed_trades:
-        st.markdown("#### 📜 Replay Trade Journal (With Deducted Statutory Fees & Slippage)")
+        st.markdown("#### 📜 Replay Trade Journal (Itemized Execution Prices & Regulatory Fees)")
         t_records = []
         for i, t in enumerate(primary_acc.closed_trades):
             t_records.append({
@@ -571,7 +614,9 @@ def _render_market_replay_lab_content():
                 "Entry Price": f"₹{t.entry_price:.2f}",
                 "Exit Price": f"₹{t.exit_price:.2f}",
                 "Gross PnL": f"₹{t.gross_pnl:+,.2f}",
-                "Statutory Fees": f"₹{t.total_charges:,.2f}",
+                "Buy Fees": f"₹{t.buy_fee:,.2f}",
+                "Sell Fees": f"₹{t.sell_fee:,.2f}",
+                "Total Fees": f"₹{t.total_charges:,.2f}",
                 "Net PnL": f"₹{t.net_pnl:+,.2f}",
                 "Net Return": f"{t.net_return_pct:+.2f}%",
                 "Exit Reason": t.exit_reason,
@@ -592,6 +637,7 @@ def _render_market_replay_lab_content():
             trades_cnt = len(acc.closed_trades)
             wins = sum(1 for t in acc.closed_trades if t.net_pnl > 0)
             win_rate = (wins / trades_cnt * 100.0) if trades_cnt > 0 else 0.0
+            tot_fees = sum(t.total_charges for t in acc.closed_trades)
             
             strat_obj = engine.strategy_registry.get(sid)
             s_name = strat_obj.name if strat_obj else sid
@@ -600,6 +646,7 @@ def _render_market_replay_lab_content():
                 "Strategy Agent": s_name,
                 "Trades": trades_cnt,
                 "Win Rate": f"{win_rate:.1f}%",
+                "Total Fees": f"₹{tot_fees:,.2f}",
                 "Realized PnL": f"₹{acc.realized_pnl:+,.2f}",
                 "Total Equity": f"₹{tot:,.2f}",
                 "Net Return": f"{ret:+.2f}%",

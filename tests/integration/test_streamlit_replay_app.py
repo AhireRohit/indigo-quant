@@ -41,7 +41,7 @@ def test_public_dashboard_overview_and_navigation():
 
 
 def test_market_replay_lab_playback_and_controls():
-    """Test full interactive playback controls on Market Replay Lab."""
+    """Test full interactive playback controls on Market Replay Lab with state synchronization."""
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.run()
 
@@ -50,50 +50,71 @@ def test_market_replay_lab_playback_and_controls():
     at.run()
     assert len(at.exception) == 0, f"Exceptions entering Replay Lab: {at.exception}"
 
-    # Verify buttons exist
+    # Verify all expected playback buttons exist
     labels = [b.label for b in at.button]
+    assert any("Run Full Session" in l for l in labels)
     assert any("Start" in l for l in labels)
     assert any("+1 Bar" in l for l in labels)
     assert any("-1 Bar" in l for l in labels)
     assert any("+5 Bars" in l for l in labels)
     assert any("End" in l for l in labels)
-    assert any("Reset Broker" in l for l in labels)
+    assert any("Reset" in l for l in labels)
 
-    # 1. Click Start (jump to bar 1)
+    # 1. Click Start (bar 1)
     btn_start = [b for b in at.button if "Start" in b.label][0]
-    btn_start.click()
-    at.run()
+    btn_start.click().run()
     assert len(at.exception) == 0, f"Exceptions clicking Start: {at.exception}"
+    assert at.session_state["replay_step"] == 1
 
-    # 2. Advance 1 bar
+    # 2. Advance 1 bar (moves bar 1 to 2)
     btn_next = [b for b in at.button if "+1 Bar" in b.label][0]
-    btn_next.click()
-    at.run()
+    btn_next.click().run()
     assert len(at.exception) == 0, f"Exceptions clicking +1 Bar: {at.exception}"
+    assert at.session_state["replay_step"] == 2
 
-    # 3. Advance 5 bars
+    # 3. Advance 5 bars (moves bar 2 to 7)
     btn_plus5 = [b for b in at.button if "+5 Bars" in b.label][0]
-    btn_plus5.click()
-    at.run()
+    btn_plus5.click().run()
     assert len(at.exception) == 0, f"Exceptions clicking +5 Bars: {at.exception}"
+    assert at.session_state["replay_step"] == 7
 
-    # 4. Step backwards 1 bar
+    # 4. Step backwards 1 bar (moves bar 7 to 6)
     btn_prev = [b for b in at.button if "-1 Bar" in b.label][0]
-    btn_prev.click()
-    at.run()
+    btn_prev.click().run()
     assert len(at.exception) == 0, f"Exceptions clicking -1 Bar: {at.exception}"
+    assert at.session_state["replay_step"] == 6
 
-    # 5. Jump to End of Session
+    # 5. Jump to End of Session (reaches last available candle)
     btn_end = [b for b in at.button if "End" in b.label][0]
-    btn_end.click()
-    at.run()
+    btn_end.click().run()
     assert len(at.exception) == 0, f"Exceptions clicking End: {at.exception}"
+    end_step = at.session_state["replay_step"]
+    assert end_step > 20
 
-    # 6. Reset Broker
-    btn_reset = [b for b in at.button if "Reset Broker" in b.label][0]
-    btn_reset.click()
-    at.run()
-    assert len(at.exception) == 0, f"Exceptions clicking Reset Broker: {at.exception}"
+    # Capture equity after stepping to End
+    engine_key = at.session_state["current_engine_key"]
+    stepped_engine = at.session_state[engine_key]
+    primary_sid = list(stepped_engine.broker.accounts.keys())[0]
+    stepped_trades = len(stepped_engine.broker.accounts[primary_sid].closed_trades)
+    stepped_equity = stepped_engine.broker.accounts[primary_sid].total_equity
+
+    # 6. Click Run Full Session: verify it yields identical trades and ending equity
+    btn_full = [b for b in at.button if "Run Full Session" in b.label][0]
+    btn_full.click().run()
+    assert len(at.exception) == 0, f"Exceptions clicking Run Full Session: {at.exception}"
+    assert at.session_state["replay_step"] == end_step
+    full_engine = at.session_state[engine_key]
+    full_trades = len(full_engine.broker.accounts[primary_sid].closed_trades)
+    full_equity = full_engine.broker.accounts[primary_sid].total_equity
+
+    assert full_trades == stepped_trades
+    assert full_equity == stepped_equity
+
+    # 7. Reset Broker
+    btn_reset = [b for b in at.button if "Reset" in b.label][0]
+    btn_reset.click().run()
+    assert len(at.exception) == 0, f"Exceptions clicking Reset: {at.exception}"
+    assert at.session_state["replay_step"] == 1
 
 
 def test_market_replay_lab_asset_switching():

@@ -27,6 +27,7 @@ class ReplayPosition(BaseModel):
     quantity: int
     entry_time: datetime.datetime
     entry_price: float
+    raw_entry_price: float = 0.0
     stop_price: float
     target_price: float
     current_price: float
@@ -36,6 +37,9 @@ class ReplayPosition(BaseModel):
     mae_pct: float = 0.0  # Max Adverse Excursion (%)
     mfe_pct: float = 0.0  # Max Favorable Excursion (%)
     holding_candles: int = 0
+    buy_fee: float = 0.0
+    buy_slippage: float = 0.0
+    entry_cash_outlay: float = 0.0
 
     @property
     def shares(self) -> int:
@@ -55,10 +59,14 @@ class ReplayTrade(BaseModel):
     quantity: int
     entry_time: datetime.datetime
     entry_price: float
+    raw_entry_price: float = 0.0
     exit_time: datetime.datetime
     exit_price: float
+    raw_exit_price: float = 0.0
     exit_reason: str  # "TARGET_HIT", "STOP_LOSS", "END_OF_SESSION_EXIT", "TIME_EXPIRATION"
     gross_pnl: float
+    buy_fee: float = 0.0
+    sell_fee: float = 0.0
     total_charges: float
     net_pnl: float
     return_pct: float
@@ -255,11 +263,18 @@ class ReplayBroker:
             # Calculate charges & fill
             if self.mode == "INTRADAY":
                 cost = self.intraday_cost_model.calculate_charges("BUY", candle_open, final_qty)
+                effective_buy_price = cost.effective_execution_price
+                buy_fee = cost.total_statutory_and_brokerage
+                buy_slippage = cost.slippage
             else:
                 cost = self.delivery_cost_model.calculate_charges("BUY", candle_open, final_qty)
+                effective_buy_price = round(candle_open * (1.0 + self.delivery_cost_model.slippage_pct), 2)
+                buy_fee = round(cost.total_charges - cost.slippage, 2)
+                buy_slippage = round(cost.slippage, 2)
 
-            # Cash impact is negative
-            total_required = abs(cost.net_cash_impact)
+            buy_amount = round(effective_buy_price * final_qty, 2)
+            total_required = round(buy_amount + buy_fee, 2)
+
             if acc.cash < total_required:
                 order.status = "REJECTED"
                 order.rejection_reason = f"Cash ₹{acc.cash:.2f} insufficient for total required ₹{total_required:.2f}."
@@ -267,10 +282,10 @@ class ReplayBroker:
                 continue
 
             # Deduct cash
-            acc.cash -= total_required
+            acc.cash = round(acc.cash - total_required, 2)
             order.status = "FILLED"
             order.fill_time = candle_time
-            order.fill_price = cost.effective_execution_price
+            order.fill_price = effective_buy_price
             order.quantity = final_qty
 
             # Create Open Position
@@ -282,15 +297,19 @@ class ReplayBroker:
                 symbol=symbol,
                 quantity=final_qty,
                 entry_time=candle_time,
-                entry_price=cost.effective_execution_price,
+                entry_price=effective_buy_price,
+                raw_entry_price=candle_open,
                 stop_price=order.stop_price,
                 target_price=order.target_price,
                 current_price=candle_open,
                 highest_price_seen=candle_open,
                 lowest_price_seen=candle_open,
+                buy_fee=buy_fee,
+                buy_slippage=buy_slippage,
+                entry_cash_outlay=total_required,
             )
             acc.open_positions.append(pos)
-            results.append((order, f"FILLED {final_qty} shares @ ₹{cost.effective_execution_price:.2f}"))
+            results.append((order, f"FILLED {final_qty} shares @ ₹{effective_buy_price:.2f} (Fees: ₹{buy_fee:.2f})"))
 
         self.pending_orders = remaining
         return results
@@ -362,14 +381,31 @@ class ReplayBroker:
                     # Execute sell
                     if self.mode == "INTRADAY":
                         sell_cost = self.intraday_cost_model.calculate_charges("SELL", exit_price, pos.quantity)
+                        effective_sell_price = sell_cost.effective_execution_price
+                        sell_fee = sell_cost.total_statutory_and_brokerage
+                        sell_slippage = sell_cost.slippage
                     else:
                         sell_cost = self.delivery_cost_model.calculate_charges("SELL", exit_price, pos.quantity)
+                        effective_sell_price = round(exit_price * (1.0 - self.delivery_cost_model.slippage_pct), 2)
+                        sell_fee = round(sell_cost.total_charges - sell_cost.slippage, 2)
+                        sell_slippage = round(sell_cost.slippage, 2)
 
-                    # Cash impact is positive
-                    acc.cash += sell_cost.net_cash_impact
-                    gross_pnl = round((exit_price - pos.entry_price) * pos.quantity, 2)
-                    net_pnl = round(sell_cost.net_cash_impact - (pos.entry_price * pos.quantity), 2)
-                    ret_pct = round((net_pnl / (pos.entry_price * pos.quantity)) * 100.0, 2)
+                    sell_amount = round(effective_sell_price * pos.quantity, 2)
+                    sell_cash_inflow = round(sell_amount - sell_fee, 2)
+
+                    # Update cash
+                    acc.cash = round(acc.cash + sell_cash_inflow, 2)
+
+                    # Gross PnL strictly calculated from effective execution prices: (exit_price - entry_price) * quantity
+                    buy_amount = round(pos.entry_price * pos.quantity, 2)
+                    gross_pnl = round(sell_amount - buy_amount, 2)
+
+                    # Total charges include BOTH buy-side and sell-side statutory fees
+                    total_charges = round(pos.buy_fee + sell_fee, 2)
+
+                    # Net PnL = Gross PnL - Total Fees = sell_cash_inflow - pos.entry_cash_outlay
+                    net_pnl = round(gross_pnl - total_charges, 2)
+                    ret_pct = round((net_pnl / buy_amount) * 100.0, 2) if buy_amount > 0 else 0.0
 
                     trade_id = f"trd_replay_{self._trade_counter:04d}"
                     self._trade_counter += 1
@@ -381,11 +417,15 @@ class ReplayBroker:
                         quantity=pos.quantity,
                         entry_time=pos.entry_time,
                         entry_price=pos.entry_price,
+                        raw_entry_price=pos.raw_entry_price,
                         exit_time=c_time,
-                        exit_price=sell_cost.effective_execution_price,
+                        exit_price=effective_sell_price,
+                        raw_exit_price=exit_price,
                         exit_reason=exit_reason,
                         gross_pnl=gross_pnl,
-                        total_charges=sell_cost.total_effective_cost,
+                        buy_fee=pos.buy_fee,
+                        sell_fee=sell_fee,
+                        total_charges=total_charges,
                         net_pnl=net_pnl,
                         return_pct=ret_pct,
                         target_achieved=(exit_reason == "TARGET_HIT"),
@@ -394,7 +434,7 @@ class ReplayBroker:
                         holding_candles=pos.holding_candles,
                     )
                     acc.closed_trades.append(trade)
-                    closed_trades.append((trade, f"CLOSED {pos.quantity} shares @ ₹{exit_price:.2f} ({exit_reason}) Net PnL: ₹{net_pnl:,.2f}"))
+                    closed_trades.append((trade, f"CLOSED {pos.quantity} shares @ ₹{effective_sell_price:.2f} ({exit_reason}) Net PnL: ₹{net_pnl:,.2f}"))
                 else:
                     remaining_positions.append(pos)
 
@@ -416,6 +456,8 @@ class ReplayBroker:
 
         total_net_pnl = sum(t.net_pnl for t in trades)
         total_gross_pnl = sum(t.gross_pnl for t in trades)
+        total_buy_fees = sum(t.buy_fee for t in trades)
+        total_sell_fees = sum(t.sell_fee for t in trades)
         total_charges = sum(t.total_charges for t in trades)
 
         win_rate = (len(wins) / total_trades * 100.0) if total_trades > 0 else 0.0
@@ -438,6 +480,8 @@ class ReplayBroker:
             "net_return_pct": round(ret_pct, 2),
             "total_net_pnl": round(total_net_pnl, 2),
             "total_gross_pnl": round(total_gross_pnl, 2),
+            "total_buy_fees": round(total_buy_fees, 2),
+            "total_sell_fees": round(total_sell_fees, 2),
             "total_charges": round(total_charges, 2),
             "total_trades": total_trades,
             "winning_trades": len(wins),
