@@ -21,6 +21,10 @@ class ConditionResult(BaseModel):
     observed_value: Any
     threshold_value: Any
 
+    @property
+    def actual_value(self) -> Any:
+        return self.observed_value
+
 
 class StrategyEvaluationResult(BaseModel):
     strategy_id: str
@@ -39,6 +43,18 @@ class StrategyEvaluationResult(BaseModel):
     stop_distance_pct: float = 0.0
     reward_to_risk_ratio: float = 0.0
     rejection_reason: Optional[str] = None
+
+    @property
+    def target_price(self) -> float:
+        return self.target_price_estimate
+
+    @property
+    def initial_stop_price(self) -> float:
+        return self.initial_stop_estimate
+
+    @property
+    def quality_score(self) -> float:
+        return self.rule_quality_score
 
 
 class BaseStrategy(ABC):

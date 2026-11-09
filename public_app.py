@@ -17,6 +17,8 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
+from indigo_quant.replay.ui import render_market_replay_lab
+
 # Page Configuration
 st.set_page_config(
     page_title="INDIGO QUANT — Public Research & Paper Trading",
@@ -86,6 +88,7 @@ nav = st.sidebar.radio(
         "5. Technical Charts",
         "6. Deterministic Rejections",
         "7. System Health & Heartbeat",
+        "8. Market Replay Lab",
     ],
 )
 
@@ -375,3 +378,9 @@ elif nav == "7. System Health & Heartbeat":
 
     st.markdown("---")
     st.caption("INDIGO QUANT — Automated Indian Equity Quantitative Research & Paper-Trading Engine.")
+
+# ==============================================================================
+# PAGE 8 — MARKET REPLAY LAB
+# ==============================================================================
+elif nav == "8. Market Replay Lab":
+    render_market_replay_lab()

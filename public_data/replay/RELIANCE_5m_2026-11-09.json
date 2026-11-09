@@ -1,0 +1,13 @@
+{
+  "symbol": "RELIANCE",
+  "yf_symbol": "RELIANCE.NS",
+  "interval": "5m",
+  "session_date": "2026-11-09",
+  "provider": "yfinance",
+  "retrieval_timestamp": "2026-11-09 20:14:31 IST",
+  "timezone": "Asia/Kolkata",
+  "validation_status": "VERIFIED",
+  "bars_count": 74,
+  "earliest_observed": "2026-11-09 09:15:00 IST",
+  "latest_observed": "2026-11-09 15:25:00 IST"
+}

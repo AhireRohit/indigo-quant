@@ -25,6 +25,7 @@ from indigo_quant.db.repository import Repository, seed_universe_and_accounts
 from indigo_quant.db.session import SessionLocal, init_db
 from indigo_quant.engine.market_regime import MarketRegimeEngine, MarketRegimeStatus
 from indigo_quant.indicators.technical import calculate_all_indicators
+from indigo_quant.replay.ui import render_market_replay_lab
 
 # Streamlit Page Configuration
 st.set_page_config(
@@ -99,6 +100,7 @@ nav = st.sidebar.radio(
         "6. Historical Backtests",
         "7. Rejected Stocks",
         "8. System Health",
+        "9. Market Replay Lab",
     ],
 )
 
@@ -492,5 +494,11 @@ elif nav == "8. System Health":
         st.dataframe(pd.DataFrame(j_data), use_container_width=True)
     else:
         st.info("No scheduler job runs logged yet.")
+
+# ==============================================================================
+# PAGE 9 — MARKET REPLAY LAB
+# ==============================================================================
+elif nav == "9. Market Replay Lab":
+    render_market_replay_lab()
 
 db.close()

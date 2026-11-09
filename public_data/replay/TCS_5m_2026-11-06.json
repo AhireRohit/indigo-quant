@@ -1,0 +1,13 @@
+{
+  "symbol": "TCS",
+  "yf_symbol": "TCS.NS",
+  "interval": "5m",
+  "session_date": "2026-11-06",
+  "provider": "yfinance",
+  "retrieval_timestamp": "2026-11-09 20:14:49 IST",
+  "timezone": "Asia/Kolkata",
+  "validation_status": "VERIFIED",
+  "bars_count": 73,
+  "earliest_observed": "2026-11-06 09:15:00 IST",
+  "latest_observed": "2026-11-06 15:25:00 IST"
+}

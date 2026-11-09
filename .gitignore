@@ -51,6 +51,8 @@ data/cache/*
 !data/cache/.gitkeep
 data/exports/*
 !data/exports/.gitkeep
+data/intraday_cache/*
+!data/intraday_cache/.gitkeep
 *.db
 *.sqlite3
 *.sqlite
